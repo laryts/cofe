@@ -137,6 +137,21 @@ drift.
 
 The append-only log means history, provenance and a moderation hook need no additional tables.
 
+### Connecting lazily
+
+`src/server/db/client.ts` defers connection setup to the first query rather than
+creating it at module scope. This is load-bearing, not a micro-optimisation:
+Next.js imports **every route module** while collecting page data during
+`next build`, so a client constructed at import time throws whenever
+`DATABASE_URL` is absent — the normal state of a preview or CI environment.
+Wrapping call sites in `try`/`catch` does not help, because the failure happens
+at import time, before any of that code runs.
+
+CI builds once with a database and once without, so this cannot regress.
+
+If you add a module that touches the database, keep the work inside functions.
+Module-level side effects that need configuration will break the build.
+
 ### Geospatial
 
 No PostGIS. `latitude` and `longitude` are plain columns behind a composite index. A query for

@@ -65,5 +65,15 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Regression guard. Next.js imports every route module while collecting
+      # page data, so anything that opens a database connection at module scope
+      # breaks the build wherever DATABASE_URL is absent — which is the normal
+      # state of a preview or CI environment, and is exactly how this broke on
+      # Vercel once. The app must build with no database configured at all.
+      - name: Build without a database
+        run: pnpm build
+        env:
+          DATABASE_URL: ""
+
       - name: Check formatting
         run: pnpm format:check

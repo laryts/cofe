@@ -50,6 +50,8 @@ We will credit you in the advisory unless you prefer otherwise.
 - **Set `GEOCODING_USER_AGENT`** to something identifying your deployment. The default identifies
   this project, and sending unattributable traffic to a shared public geocoder is both rude and
   likely to get your instance blocked.
+- **The app builds without a database on purpose.** `DATABASE_URL` is only needed at runtime, so a
+  build environment never needs production credentials.
 - **Never commit `.env`.** It is gitignored; keep it that way.
 - **`DATABASE_URL` is server-only.** It is imported behind the `server-only` package, so leaking it
   into a client bundle is a build error rather than a silent disaster — please do not work around
