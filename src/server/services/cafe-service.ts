@@ -5,6 +5,7 @@ import { z } from "zod";
 import { CAFE_FILTER_KEYS, clampMinScore, type CafeFilters } from "@/domain/cafe";
 import type { CafeDetail, CafeSummary } from "@/domain/cafe";
 
+import { geocode } from "@/server/services/geocoding-service";
 import {
   findAllPublishedSlugs,
   findCafeBySlug,
@@ -42,18 +43,92 @@ export const cafeSearchSchema = z.object({
 
 export type CafeSearchInput = z.infer<typeof cafeSearchSchema>;
 
-export async function searchCafes(input: CafeSearchInput): Promise<FindCafesResult> {
+export interface CafeSearchResult extends FindCafesResult {
+  /**
+   * Set when a text query matched nothing in our data and was resolved to a real
+   * place by the geocoder. Lets the UI say "no cafés in Berlin yet" rather than
+   * a generic "no results", which is a very different message: one says we have
+   * a gap, the other implies the user mistyped.
+   */
+  readonly resolvedPlace: { name: string; latitude: number; longitude: number } | null;
+}
+
+/** How far around a geocoded place to look, in km. */
+const GEOCODED_SEARCH_RADIUS_KM = 8;
+
+export async function searchCafes(input: CafeSearchInput): Promise<CafeSearchResult> {
   const hasOrigin = input.lat !== undefined && input.lng !== undefined;
 
-  return findCafes({
-    near: hasOrigin ? { latitude: input.lat as number, longitude: input.lng as number } : undefined,
+  const baseOptions = {
     radiusKm: input.radius,
-    query: input.q,
     filters: input.filters,
     minScore: input.minScore === undefined ? undefined : clampMinScore(input.minScore),
     limit: input.limit,
     offset: input.offset,
+  };
+
+  const direct = await findCafes({
+    ...baseOptions,
+    near: hasOrigin ? { latitude: input.lat as number, longitude: input.lng as number } : undefined,
+    query: input.q,
   });
+
+  /*
+   * Text search runs against our own data first — it is fast, free, and covers
+   * the common case of a neighbourhood or city we already know.
+   *
+   * Only when that finds nothing do we fall back to the geocoder, which keeps
+   * external calls rare (and so keeps us comfortably inside Nominatim's usage
+   * policy — see docs/PLAN.md §9). A user searching a city we have no data for
+   * then gets "we found the place, we just have no cafés there" instead of
+   * silence.
+   */
+  const hasActiveFilters = Object.values(input.filters ?? {}).some(Boolean);
+
+  // Skip the fallback when filters are active: an empty result then means "your
+  // filters excluded everything", not "we have no data for this place". Saying
+  // the latter would be wrong, and it would waste an external call proving it.
+  if (direct.total > 0 || !input.q || hasOrigin || hasActiveFilters) {
+    return { ...direct, resolvedPlace: null };
+  }
+
+  const place = await resolvePlace(input.q);
+  if (!place) return { ...direct, resolvedPlace: null };
+
+  const nearby = await findCafes({
+    ...baseOptions,
+    near: { latitude: place.latitude, longitude: place.longitude },
+    radiusKm: input.radius ?? GEOCODED_SEARCH_RADIUS_KM,
+  });
+
+  return { ...nearby, resolvedPlace: place };
+}
+
+/**
+ * Resolve free text to a place.
+ *
+ * Geocoding is a nice-to-have on top of a search that already works, so an
+ * unavailable or slow provider must degrade to "no results" rather than break
+ * the page. Failures are logged, not thrown.
+ */
+async function resolvePlace(
+  query: string,
+): Promise<{ name: string; latitude: number; longitude: number } | null> {
+  try {
+    const [match] = await geocode(query);
+    if (!match) return null;
+
+    return {
+      // Nominatim returns a long comma-separated display name; the leading
+      // component is the part a human recognises.
+      name: match.name.split(",")[0]?.trim() || match.name,
+      latitude: match.latitude,
+      longitude: match.longitude,
+    };
+  } catch (error) {
+    console.error("Geocoding fallback failed", error);
+    return null;
+  }
 }
 
 export async function getCafeBySlug(slug: string): Promise<CafeDetail | null> {

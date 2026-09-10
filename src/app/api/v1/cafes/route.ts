@@ -24,6 +24,9 @@ export async function GET(request: NextRequest) {
           total: result.total,
           limit: input.limit ?? result.cafes.length,
           offset: input.offset ?? 0,
+          // Present when the query matched nothing here and was resolved to a
+          // real place by the geocoder.
+          resolvedPlace: result.resolvedPlace,
         },
       },
       { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },

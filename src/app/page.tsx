@@ -5,6 +5,7 @@ import { CafeListItem } from "@/components/cafe/cafe-list-item";
 import { ScoreWeights } from "@/components/cafe/score-explainer";
 import { HomeSearch } from "@/components/cafe/home-search";
 import { Button } from "@/components/ui/button";
+import type { CafeSummary } from "@/domain/cafe";
 import { messages } from "@/lib/i18n";
 import { getFeaturedCafes } from "@/server/services/cafe-service";
 
@@ -15,8 +16,23 @@ import { getFeaturedCafes } from "@/server/services/cafe-service";
  * no illustration, no gradient mesh, no product screenshot. The proposition is
  * a sentence and the sentence does the work.
  */
+
+/**
+ * The featured list is the only part of this page that needs the database, and
+ * it is the least important part of it. A build or a request should not fail
+ * because Postgres is briefly unreachable — the proposition, the score
+ * explainer and the contribute CTA are all still worth serving.
+ */
+async function safeFeaturedCafes(): Promise<readonly CafeSummary[]> {
+  try {
+    return await getFeaturedCafes(5);
+  } catch (error) {
+    console.error("Could not load featured cafés for the homepage", error);
+    return [];
+  }
+}
 export default async function HomePage() {
-  const featured = await getFeaturedCafes(5);
+  const featured = await safeFeaturedCafes();
   const hasDemoData = featured.some((cafe) => cafe.source === "seed");
 
   return (

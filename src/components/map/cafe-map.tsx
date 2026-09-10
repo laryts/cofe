@@ -16,6 +16,7 @@ interface CafeMapProps {
   selectedId: string | null;
   hoveredId: string | null;
   onSelect: (id: string | null) => void;
+  onHover?: (id: string | null) => void;
   onMoveEnd?: (center: { latitude: number; longitude: number }) => void;
   /** Notifies the parent when the basemap cannot be loaded. */
   onTileError?: (failed: boolean) => void;
@@ -49,6 +50,7 @@ export function CafeMap({
   selectedId,
   hoveredId,
   onSelect,
+  onHover,
   onMoveEnd,
   onTileError,
 }: CafeMapProps) {
@@ -70,6 +72,9 @@ export function CafeMap({
   });
   const handleTileError = useEffectEvent((failed: boolean) => {
     onTileError?.(failed);
+  });
+  const handleHover = useEffectEvent((id: string | null) => {
+    onHover?.(id);
   });
 
   // Initialise once. Deliberately no dependencies: re-creating the map on every
@@ -101,15 +106,21 @@ export function CafeMap({
      * outage, an offline user. Without this the map degrades into a blank void
      * with floating markers and no explanation, which reads as a broken page.
      * We surface it instead, and the list beside the map stays fully usable.
+     *
+     * Only genuine *loading* failures count. MapLibre also emits style-spec
+     * validation complaints through this same event ("glyphs: string expected,
+     * null found"), and a cosmetic spec warning must not blank out a map that
+     * is working perfectly well — an earlier version keyed off the word "glyph"
+     * and did exactly that.
      */
     map.on("error", (event) => {
-      const message = event.error?.message ?? "";
-      if (/style|sprite|glyph|tile|source/i.test(message)) {
-        handleTileError(true);
-      }
+      if (isResourceLoadFailure(event.error)) handleTileError(true);
     });
 
-    map.on("styledata", () => handleTileError(false));
+    // A style that finishes loading retires any earlier failure.
+    map.on("styledata", () => {
+      if (map.isStyleLoaded()) handleTileError(false);
+    });
 
     mapRef.current = map;
     const markers = markersRef.current;
@@ -134,7 +145,10 @@ export function CafeMap({
       seen.add(cafe.id);
 
       if (!markers.has(cafe.id)) {
-        const element = createMarkerElement(cafe, () => handleSelect(cafe.id));
+        const element = createMarkerElement(cafe, {
+          onClick: () => handleSelect(cafe.id),
+          onHover: (isOver) => handleHover(isOver ? cafe.id : null),
+        });
         const marker = new Marker({ element })
           .setLngLat([cafe.coordinates.longitude, cafe.coordinates.latitude])
           .addTo(map);
@@ -169,7 +183,23 @@ export function CafeMap({
   return <div ref={containerRef} className="h-full w-full" aria-hidden="true" />;
 }
 
-function createMarkerElement(cafe: CafeSummary, onClick: () => void): HTMLElement {
+/**
+ * Distinguish "the basemap could not be fetched" from "the style has a cosmetic
+ * problem". Only the first should tell the user their map is broken.
+ */
+function isResourceLoadFailure(error: { message?: string; status?: number } | undefined): boolean {
+  if (!error) return false;
+
+  // MapLibre's AJAXError carries the HTTP status of the failed request.
+  if (typeof error.status === "number" && error.status >= 400) return true;
+
+  return /failed to fetch|networkerror|load failed|error loading/i.test(error.message ?? "");
+}
+
+function createMarkerElement(
+  cafe: CafeSummary,
+  handlers: { onClick: () => void; onHover: (isOver: boolean) => void },
+): HTMLElement {
   const band = scoreBand(cafe.profile.workFriendlyScore);
   const score = cafe.profile.workFriendlyScore;
 
@@ -186,8 +216,15 @@ function createMarkerElement(cafe: CafeSummary, onClick: () => void): HTMLElemen
   button.style.setProperty("--marker-color", BAND_COLORS[band] ?? BAND_COLORS.unknown ?? "");
   button.addEventListener("click", (event) => {
     event.stopPropagation();
-    onClick();
+    handlers.onClick();
   });
+
+  // Hovering a marker highlights its list row, mirroring the list-to-map
+  // direction. Focus is included so keyboard users get the same feedback.
+  button.addEventListener("mouseenter", () => handlers.onHover(true));
+  button.addEventListener("mouseleave", () => handlers.onHover(false));
+  button.addEventListener("focus", () => handlers.onHover(true));
+  button.addEventListener("blur", () => handlers.onHover(false));
 
   return button;
 }

@@ -1,0 +1,17 @@
+{
+  "version": 8,
+  "name": "co-fe offline dev style",
+  "metadata": {
+    "co-fe:note": "Minimal MapLibre style that makes zero network requests. Not a real basemap - it renders a plain background so the map is fully interactive (pan, zoom, markers) when tiles are unavailable or you are working offline. Point NEXT_PUBLIC_MAP_STYLE_URL at /dev-map-style.json to use it."
+  },
+  "sources": {},
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#efe9df"
+      }
+    }
+  ]
+}

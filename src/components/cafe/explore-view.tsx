@@ -1,7 +1,7 @@
 "use client";
 
 import { List, MapIcon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { CafeList } from "@/components/cafe/cafe-list";
 import { FilterControls } from "@/components/cafe/filter-controls";
@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 interface ExploreViewProps {
   cafes: readonly CafeSummary[];
   hasDemoData: boolean;
+  /** Set when the search matched nothing here but resolved to a real place. */
+  resolvedPlace: { name: string; latitude: number; longitude: number } | null;
 }
 
 type MobilePane = "list" | "map";
@@ -30,21 +32,42 @@ type MobilePane = "list" | "map";
  * On mobile the two panes become a toggle rather than a split, because a
  * half-height map above a half-height list is useless at both jobs.
  */
-export function ExploreView({ cafes, hasDemoData }: ExploreViewProps) {
+export function ExploreView({ cafes, hasDemoData, resolvedPlace }: ExploreViewProps) {
   const { state, toggleFilter, clearFilters, setLocation, setQuery } = useExploreState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
+  const listRef = useRef<HTMLDivElement>(null);
 
   const hasFilters = Object.values(state.filters).some(Boolean);
+
+  /**
+   * Clicking a marker should show you which café it is, not just tint it.
+   * On desktop that means scrolling the list row into view; on mobile, where
+   * only one pane is visible, it means switching to the list.
+   */
+  function handleMapSelect(id: string | null) {
+    setSelectedId(id);
+    if (!id) return;
+
+    setMobilePane("list");
+    // Defer to let the pane switch commit before we measure the row.
+    requestAnimationFrame(() => {
+      listRef.current
+        ?.querySelector(`[data-cafe-id="${id}"]`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }
 
   // Centre on the search origin when there is one, otherwise on the first
   // result, so the map is never showing an empty ocean.
   const center =
     state.center ??
-    (cafes[0]
-      ? { latitude: cafes[0].coordinates.latitude, longitude: cafes[0].coordinates.longitude }
-      : null);
+    (resolvedPlace
+      ? { latitude: resolvedPlace.latitude, longitude: resolvedPlace.longitude }
+      : cafes[0]
+        ? { latitude: cafes[0].coordinates.latitude, longitude: cafes[0].coordinates.longitude }
+        : null);
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col">
@@ -96,6 +119,7 @@ export function ExploreView({ cafes, hasDemoData }: ExploreViewProps) {
 
       <div className="flex min-h-0 flex-1 lg:grid lg:grid-cols-[minmax(360px,420px)_1fr]">
         <div
+          ref={listRef}
           className={cn(
             "bg-background min-h-0 flex-1 overflow-y-auto lg:block",
             mobilePane === "map" && "hidden",
@@ -104,6 +128,7 @@ export function ExploreView({ cafes, hasDemoData }: ExploreViewProps) {
           <CafeList
             cafes={cafes}
             hasFilters={hasFilters}
+            emptyPlaceName={resolvedPlace?.name ?? null}
             selectedId={selectedId}
             hoveredId={hoveredId}
             onHover={setHoveredId}
@@ -123,7 +148,9 @@ export function ExploreView({ cafes, hasDemoData }: ExploreViewProps) {
             center={center}
             selectedId={selectedId}
             hoveredId={hoveredId}
-            onSelect={setSelectedId}
+            onSelect={handleMapSelect}
+            onHover={setHoveredId}
+            onSearchArea={(coords) => setLocation(coords, "")}
           />
         </div>
       </div>

@@ -114,7 +114,7 @@ superuser, no special image.
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | **yes** | PostgreSQL connection string |
-| `NEXT_PUBLIC_MAP_STYLE_URL` | no | MapLibre style. Defaults to key-free demo tiles — fine for development, **not for production** |
+| `NEXT_PUBLIC_MAP_STYLE_URL` | no | MapLibre style. Defaults to key-free demo tiles — fine for development, **not for production**. Set to `/dev-map-style.json` to work fully offline |
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata |
 | `GEOCODING_USER_AGENT` | no | Identifies your instance to the geocoder. **Change this before running in public** |
 | `GEOCODING_BASE_URL` | no | Geocoding endpoint; point at a self-hosted Nominatim if you have one |

@@ -51,6 +51,13 @@ export const messages = {
     showMap: "Map",
     showList: "List",
     searchThisArea: "Search this area",
+    searchingArea: "Searching...",
+    noCafesHere: (place: string) => `No cafés in ${place} yet`,
+    noCafesHereHint:
+      "We found the place, we just have no data for it. If you know somewhere good there, adding it takes a couple of minutes.",
+    addFirstCafe: "Add the first café",
+    showingNear: (place: string) => `Showing cafés near ${place}`,
+    selectedCafe: "Selected café",
     locating: "Finding your location...",
     locationDenied: "Location unavailable. Search for a place instead.",
     listLabel: "Cafés matching your filters",

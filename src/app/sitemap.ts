@@ -4,7 +4,12 @@ import { SITE_URL } from "@/lib/public-env";
 import { getAllCafeSlugs } from "@/server/services/cafe-service";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const cafes = await getAllCafeSlugs();
+  // Same reasoning as the homepage: a sitemap listing only the static routes is
+  // far better than a build that fails because the database blinked.
+  const cafes = await getAllCafeSlugs().catch((error: unknown) => {
+    console.error("Could not load cafés for the sitemap", error);
+    return [];
+  });
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "weekly", priority: 1 },

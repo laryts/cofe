@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 interface CafeListItemProps {
   cafe: CafeSummary;
   isSelected?: boolean;
+  /** Set when the corresponding map marker is hovered or focused. */
+  isHovered?: boolean;
   onHover?: (id: string | null) => void;
   onSelect?: (id: string) => void;
 }
@@ -24,15 +26,29 @@ interface CafeListItemProps {
  * A list row rather than a card, per the design direction: the explore view is
  * a list of places, not fourteen floating boxes with shadows.
  */
-export function CafeListItem({ cafe, isSelected, onHover, onSelect }: CafeListItemProps) {
+export function CafeListItem({
+  cafe,
+  isSelected,
+  isHovered,
+  onHover,
+  onSelect,
+}: CafeListItemProps) {
   const { profile } = cafe;
   const band = scoreBand(profile.workFriendlyScore);
 
   return (
     <li
+      data-cafe-id={cafe.id}
       className={cn(
         "border-border border-b transition-colors",
-        isSelected ? "bg-accent-soft/60" : "hover:bg-surface-sunken",
+        // Selection is stronger than hover, and hovering a marker tints its row
+        // the same way hovering the row tints its marker — the sync reads the
+        // same in both directions.
+        isSelected
+          ? "bg-accent-soft/60"
+          : isHovered
+            ? "bg-surface-sunken"
+            : "hover:bg-surface-sunken",
       )}
       onMouseEnter={() => onHover?.(cafe.id)}
       onMouseLeave={() => onHover?.(null)}

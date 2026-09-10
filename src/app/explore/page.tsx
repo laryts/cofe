@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 export default async function ExplorePage(props: PageProps<"/explore">) {
   const searchParams = await props.searchParams;
   const input = parseCafeSearchParams(searchParams);
-  const { cafes } = await searchCafes({ ...input, limit: 100 });
+  const { cafes, resolvedPlace } = await searchCafes({ ...input, limit: 100 });
 
   const hasDemoData = cafes.some((cafe) => cafe.source === "seed");
 
-  return <ExploreView cafes={cafes} hasDemoData={hasDemoData} />;
+  return <ExploreView cafes={cafes} hasDemoData={hasDemoData} resolvedPlace={resolvedPlace} />;
 }

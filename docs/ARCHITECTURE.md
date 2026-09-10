@@ -74,6 +74,7 @@ Violating one is a lint error with an explanatory message, not a code-review con
 | Change user-facing copy | `src/lib/i18n/messages/en.ts` — never inline in JSX |
 | Change colours, spacing or type | `src/app/globals.css` (design tokens) |
 | Add demo cafés | `src/server/db/seed/data.ts` |
+| Work offline (no tile host) | Set `NEXT_PUBLIC_MAP_STYLE_URL=/dev-map-style.json` |
 
 ## Data flow
 
