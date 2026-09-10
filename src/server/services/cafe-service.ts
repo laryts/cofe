@@ -6,6 +6,7 @@ import { CAFE_FILTER_KEYS, clampMinScore, type CafeFilters } from "@/domain/cafe
 import type { CafeDetail, CafeSummary } from "@/domain/cafe";
 
 import {
+  findAllPublishedSlugs,
   findCafeBySlug,
   findCafes,
   findCities,
@@ -67,6 +68,11 @@ export async function getFeaturedCafes(limit = 6): Promise<readonly CafeSummary[
 
 export async function getCities(): Promise<string[]> {
   return findCities();
+}
+
+/** Every published café, for the sitemap. */
+export async function getAllCafeSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
+  return findAllPublishedSlugs();
 }
 
 /**
