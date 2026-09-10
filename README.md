@@ -118,6 +118,7 @@ superuser, no special image.
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata |
 | `GEOCODING_USER_AGENT` | no | Identifies your instance to the geocoder. **Change this before running in public** |
 | `GEOCODING_BASE_URL` | no | Geocoding endpoint; point at a self-hosted Nominatim if you have one |
+| `MODERATION_TOKEN` | no | Unlocks the moderation queue at `/moderate`. Unset means moderation is **unavailable**, not open. Generate with `openssl rand -base64 32` |
 
 All are validated with Zod at startup, so a mistake fails immediately with a readable message.
 
@@ -149,21 +150,32 @@ data arrives, seed data is deleted rather than blended in.
 co-fe only works if people who know their neighbourhood fill it in. No algorithm knows whether the
 chairs are comfortable — someone has to have sat in them.
 
-- **[Add a café](https://github.com/laryts/cofe/issues/new?template=add-cafe.yml)** — a structured
-  form, no coding needed
-- **[Correct something](https://github.com/laryts/cofe/issues/new?template=update-cafe.yml)** — cafés
-  change, and stale data is worse than none
+- **Add a café at `/add`** — an in-app form: pin it on a map, rate the work conditions, done. No
+  account needed. A moderator reviews it before it goes live.
+- **Report on a café you have worked in** — same flow, from the café's own page. Cafés change, and
+  stale data is worse than none.
 - **[Contribute code](CONTRIBUTING.md)** — small codebase, documented architecture, five-minute setup
+
+### How moderation works
+
+Anyone can submit; nothing appears until a person approves it. Submissions land as `pending` —
+invisible to visitors and counting toward no score — and a moderator approves or rejects them at
+`/moderate`. That is what lets the form stay open and account-free without becoming a spam target.
+
+Rejected submissions are hidden rather than deleted, so a decision leaves a record.
+
+Set `MODERATION_TOKEN` to enable the queue. **When it is unset, moderation is unavailable rather than
+open** — it fails closed, so a missing variable can never expose the queue.
 
 Issues labelled `good first issue` are a reasonable place to start.
 
 ## Roadmap
 
 **Now (MVP)** — discovery, map and list, filters, café pages, the explainable score, demo data,
-contribution via issue templates.
+in-app contribution form and moderation queue.
 
-**V1** — accounts, in-app report submission, moderation queue, city landing pages, first real OSM
-import, score time-decay.
+**V1** — real accounts (per-moderator identity, an audit trail, contributor attribution), city
+landing pages, first real OSM import, score time-decay.
 
 **V2** — photos, favourites, contributor reputation, "open now", personalised weighting, public API,
 PWA with offline lists, pt-BR and es.

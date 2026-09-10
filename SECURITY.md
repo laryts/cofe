@@ -50,6 +50,15 @@ We will credit you in the advisory unless you prefer otherwise.
 - **Set `GEOCODING_USER_AGENT`** to something identifying your deployment. The default identifies
   this project, and sending unattributable traffic to a shared public geocoder is both rude and
   likely to get your instance blocked.
+- **The moderation token is the only thing protecting the queue.** Generate it with
+  `openssl rand -base64 32`, never commit it, and rotate it if it may have leaked — there is no
+  per-moderator revocation, because there are no per-moderator accounts yet.
+- **Submissions are open by design, and safe because of moderation, not because of the rate limiter.**
+  The limiter is per-process: behind more than one instance each gets its own budget, and it resets
+  on restart. It slows casual flooding; it does not stop a determined attacker. What protects the
+  site is that nothing pending is ever visible or counted.
+- **Submitter IPs are never stored.** Only a truncated SHA-256 of the source address, which is enough
+  to spot one origin flooding the queue and not enough to reconstruct who submitted what.
 - **The app builds without a database on purpose.** `DATABASE_URL` is only needed at runtime, so a
   build environment never needs production credentials.
 - **Never commit `.env`.** It is gitignored; keep it that way.

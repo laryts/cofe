@@ -6,7 +6,7 @@ import { messages } from "@/lib/i18n";
 const links = [
   { href: "/explore", label: messages.nav.explore },
   { href: "/score", label: messages.nav.score },
-  { href: "/contribute", label: messages.nav.contribute },
+  { href: "/add", label: messages.nav.contribute },
 ];
 
 export function SiteHeader() {

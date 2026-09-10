@@ -10,7 +10,8 @@ import type { CafeDetail, CafeSummary } from "@/domain/cafe";
  * alter the public API, and a column added to a table cannot silently leak.
  */
 
-export type ApiErrorCode = "bad_request" | "not_found" | "upstream_unavailable" | "internal_error";
+export type ApiErrorCode =
+  "bad_request" | "not_found" | "rate_limited" | "upstream_unavailable" | "internal_error";
 
 export interface ApiError {
   readonly error: { readonly code: ApiErrorCode; readonly message: string };
@@ -19,6 +20,7 @@ export interface ApiError {
 const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   bad_request: 400,
   not_found: 404,
+  rate_limited: 429,
   upstream_unavailable: 502,
   internal_error: 500,
 };

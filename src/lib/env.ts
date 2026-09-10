@@ -27,6 +27,22 @@ const serverEnvSchema = z.object({
 
   GEOCODING_BASE_URL: z.string().url().default("https://nominatim.openstreetmap.org"),
 
+  /**
+   * Shared secret gating the moderation queue.
+   *
+   * Optional so a fresh clone runs without it — but when unset, moderation is
+   * unavailable rather than open. Failing closed means a missing variable can
+   * never silently expose the queue. Generate one with:
+   *   openssl rand -base64 32
+   */
+  MODERATION_TOKEN: z
+    .string()
+    .min(
+      24,
+      "MODERATION_TOKEN should be at least 24 characters. Generate one with: openssl rand -base64 32",
+    )
+    .optional(),
+
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 

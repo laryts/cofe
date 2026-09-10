@@ -74,6 +74,8 @@ Violating one is a lint error with an explanatory message, not a code-review con
 | Change user-facing copy | `src/lib/i18n/messages/en.ts` — never inline in JSX |
 | Change colours, spacing or type | `src/app/globals.css` (design tokens) |
 | Add demo cafés | `src/server/db/seed/data.ts` |
+| Change what a contributor may submit | `src/domain/cafe/submission.ts` |
+| Change moderation behaviour | `src/server/services/submission-service.ts` |
 | Work offline (no tile host) | Set `NEXT_PUBLIC_MAP_STYLE_URL=/dev-map-style.json` |
 
 ## Data flow
@@ -136,6 +138,29 @@ viewport on every pan. Because it is recomputed in the same transaction as a rep
 drift.
 
 The append-only log means history, provenance and a moderation hook need no additional tables.
+
+### Contribution and moderation
+
+```
+/add  ──▶  POST /api/v1/cafes  ──▶  status: pending   (invisible, unscored)
+                                          │
+                                    /moderate  ──▶  approve  ──▶  published + recompute
+                                                └─▶  reject   ──▶  hidden, kept for the record
+```
+
+Three rules hold this together, and breaking any one of them breaks the safety of an open form:
+
+1. **Pending is invisible and inert.** Read queries filter on `status = 'published'`, and the score
+   aggregation counts only published reports. A pending submission must never move a number.
+2. **Server Actions re-check authorisation.** The page gates rendering, but an action is a public
+   endpoint — anyone can invoke it directly. Every moderation action calls `requireModerator()`
+   itself; a hidden button is not an access control.
+3. **Moderation fails closed.** With no `MODERATION_TOKEN` configured the queue is unavailable, not
+   open.
+
+Where things live: `domain/cafe/submission.ts` (what may be submitted),
+`server/services/submission-service.ts` (submit, approve, reject), `server/moderation-auth.ts`
+(the interim token gate), `server/rate-limit.ts`, `app/add/`, `app/moderate/`.
 
 ### Connecting lazily
 

@@ -83,6 +83,7 @@ async function main() {
           // must not fake. See docs/PLAN.md §16.
           contributorHandle: null,
           source: "seed" as const,
+          status: "published" as const,
           visitedAt: daysAgoToDate(report.daysAgo),
           createdAt: daysAgoToDate(report.daysAgo),
         })),
