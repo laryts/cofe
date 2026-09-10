@@ -1,0 +1,60 @@
+name: "✏️ Correct a café"
+description: "Something on co-fe is wrong or out of date."
+title: "[Update] "
+labels: ["data", "correction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cafés change — Wi-Fi improves, sockets get taped over, a quiet room becomes a music venue.
+
+        **Outdated data is worse than no data**, so corrections are every bit as valuable as new
+        entries. Thank you for taking the time.
+
+  - type: input
+    id: cafe
+    attributes:
+      label: Which café?
+      description: "The name, or the co-fe URL."
+      placeholder: "https://co-fe.example/cafes/estudio-bica-vila-mariana"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change?
+      options:
+        - "Work conditions have changed (Wi-Fi, sockets, noise, seating, long stay)"
+        - "Basic details are wrong (name, address, hours, website)"
+        - "The café has closed"
+        - "The café has moved"
+        - "Something else"
+    validations:
+      required: true
+
+  - type: textarea
+    id: change
+    attributes:
+      label: What is wrong, and what should it say?
+      description: "Be as specific as you can — 'noise should be 2, not 4, since they installed speakers' is far more useful than 'this is wrong'."
+    validations:
+      required: true
+
+  - type: input
+    id: visited
+    attributes:
+      label: When did you observe this?
+      placeholder: "Last week"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Please confirm
+      options:
+        - label: "This is my own first-hand observation."
+          required: true
+        - label: "I agree to license this data under ODbL 1.0 (see DATA-LICENSE)."
+          required: true

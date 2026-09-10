@@ -42,7 +42,9 @@ export function ExploreView({ cafes, hasDemoData }: ExploreViewProps) {
   // result, so the map is never showing an empty ocean.
   const center =
     state.center ??
-    (cafes[0] ? { latitude: cafes[0].coordinates.latitude, longitude: cafes[0].coordinates.longitude } : null);
+    (cafes[0]
+      ? { latitude: cafes[0].coordinates.latitude, longitude: cafes[0].coordinates.longitude }
+      : null);
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col">

@@ -1,0 +1,67 @@
+# Data Licence
+
+## What this covers
+
+The **database contents** of co-fe:
+
+- Café records (names, locations, addresses, opening hours)
+- Work-condition ratings and derived scores
+- Community notes and contributions
+
+It does **not** cover the source code, which is licensed under MIT — see the LICENSE file.
+
+## Licence
+
+The co-fe database is made available under the **Open Database License (ODbL) v1.0**.
+
+Full text: https://opendatacommons.org/licenses/odbl/1-0/
+
+Individual contents of the database are available under the
+**Database Contents License (DbCL) v1.0**: https://opendatacommons.org/licenses/dbcl/1-0/
+
+## In plain terms
+
+You are free to:
+
+- **Share** — copy, distribute and use the database
+- **Create** — produce works from the database
+- **Adapt** — modify, transform and build upon it
+
+As long as you:
+
+- **Attribute** — credit co-fe and its contributors, and preserve any existing notices
+- **Share-Alike** — if you publicly use an adapted version of the database, you must also offer that
+  adapted database under ODbL
+- **Keep it open** — if you redistribute the database or a derivative with a technological
+  restriction, you must also provide a version without such restriction
+
+This summary is not a substitute for the licence text.
+
+## Why ODbL rather than something more permissive
+
+Two reasons, both practical:
+
+1. **Compatibility with OpenStreetMap.** OSM data is ODbL. co-fe intends to import factual café data
+   from OSM, and a permissively-licensed database mixed with ODbL source data creates a conflict with
+   no clean resolution.
+
+2. **It cannot be fixed later.** Relicensing a database built by hundreds of contributors requires
+   the agreement of all of them. In practice that means it never happens. Choosing this at the start
+   costs nothing; choosing it later is impossible.
+
+## Attribution
+
+When using co-fe data, please include:
+
+> Contains data from co-fe (https://github.com/laryts/cofe), licensed under ODbL 1.0.
+
+Where co-fe data is derived from OpenStreetMap, OSM's own attribution applies:
+
+> Map data © OpenStreetMap contributors, licensed under ODbL.
+
+## Contributing data
+
+By contributing café data you agree to license it under ODbL 1.0 and DbCL 1.0, and you confirm the
+contribution is your own first-hand knowledge — **not copied from Google Maps, Yelp, or any other
+proprietary source**. Contributing data you do not have the right to contribute puts the whole
+dataset at risk.

@@ -22,9 +22,7 @@ import { getCafeBySlug } from "@/server/services/cafe-service";
  */
 export const revalidate = 300;
 
-export async function generateMetadata(
-  props: PageProps<"/cafes/[slug]">,
-): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<"/cafes/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   const cafe = await getCafeBySlug(slug);
 

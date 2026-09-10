@@ -38,9 +38,9 @@ export default function ScorePage() {
       <Prose>
         <h2>What it measures</h2>
         <p>
-          One number from 0 to 100, answering a single question: <em>how well can someone actually
-          work here?</em> Not how good the coffee is, not how nice the room looks — those are well
-          covered elsewhere.
+          One number from 0 to 100, answering a single question:{" "}
+          <em>how well can someone actually work here?</em> Not how good the coffee is, not how nice
+          the room looks — those are well covered elsewhere.
         </p>
 
         <p>Five things go into it, each rated 1–5 by people who have been there:</p>
@@ -100,8 +100,10 @@ score  =  ───────────────────────�
             silence.
           </li>
           <li>
-            <strong>{CONFIDENCE_THRESHOLDS.low}–{CONFIDENCE_THRESHOLDS.medium - 1} reports</strong> —
-            low confidence. A hint, not a verdict.
+            <strong>
+              {CONFIDENCE_THRESHOLDS.low}–{CONFIDENCE_THRESHOLDS.medium - 1} reports
+            </strong>{" "}
+            — low confidence. A hint, not a verdict.
           </li>
           <li>
             <strong>
@@ -166,7 +168,7 @@ function Prose({ children }: { children: React.ReactNode }) {
         "mt-8 flex flex-col gap-4 text-[0.9375rem] leading-relaxed",
         "[&_h2]:font-display [&_h2]:text-foreground [&_h2]:mt-6 [&_h2]:text-xl",
         "[&_p]:text-foreground/85 [&_p]:text-pretty",
-        "[&_ul]:flex [&_ul]:flex-col [&_ul]:gap-2 [&_ul]:pl-5 [&_li]:list-disc [&_li]:text-foreground/85",
+        "[&_li]:text-foreground/85 [&_li]:list-disc [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-2 [&_ul]:pl-5",
         "[&_strong]:text-foreground [&_strong]:font-semibold",
         "[&_a]:text-accent [&_a]:underline [&_a]:underline-offset-4",
       ].join(" ")}

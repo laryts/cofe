@@ -76,9 +76,7 @@ export default async function HomePage() {
             <h2 id="score-heading" className="font-display text-foreground text-2xl text-balance">
               {messages.home.scoreTitle}
             </h2>
-            <p className="text-muted-foreground mt-3 text-balance">
-              {messages.home.scoreSubtitle}
-            </p>
+            <p className="text-muted-foreground mt-3 text-balance">{messages.home.scoreSubtitle}</p>
             <p className="text-muted-foreground mt-3 text-sm">
               Below two reports we show no score at all, rather than a confident-looking number
               built on one person&apos;s opinion.

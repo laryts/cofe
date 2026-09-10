@@ -19,7 +19,9 @@ export function HomeSearch({ className }: { className?: string }) {
         router.push(query ? `/explore?q=${encodeURIComponent(query)}` : "/explore");
       }}
       onUseMyLocation={(coords) => {
-        router.push(`/explore?lat=${coords.latitude.toFixed(5)}&lng=${coords.longitude.toFixed(5)}&radius=5`);
+        router.push(
+          `/explore?lat=${coords.latitude.toFixed(5)}&lng=${coords.longitude.toFixed(5)}&radius=5`,
+        );
       }}
     />
   );

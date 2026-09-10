@@ -26,7 +26,7 @@ function SheetContent({
 }: React.ComponentProps<typeof SheetPrimitive.Content> & { title: string }) {
   return (
     <SheetPrimitive.Portal>
-      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:animate-in data-[state=open]:fade-in" />
+      <SheetPrimitive.Overlay className="data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:animate-in data-[state=open]:fade-in fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" />
 
       <SheetPrimitive.Content
         className={cn(

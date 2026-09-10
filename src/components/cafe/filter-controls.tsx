@@ -5,7 +5,12 @@ import { SlidersHorizontal, X } from "lucide-react";
 import { FILTER_ICONS } from "@/components/cafe/amenity-icons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { CAFE_FILTERS, countActiveFilters, type CafeFilterKey, type CafeFilters } from "@/domain/cafe";
+import {
+  CAFE_FILTERS,
+  countActiveFilters,
+  type CafeFilterKey,
+  type CafeFilters,
+} from "@/domain/cafe";
 import { messages } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 

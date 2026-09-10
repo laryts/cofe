@@ -15,7 +15,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="-m-2 flex items-center rounded-md p-2"
+          className="-ml-2 flex min-h-11 items-center rounded-md px-2"
           aria-label={`${messages.brand.name} home`}
         >
           <Logo />

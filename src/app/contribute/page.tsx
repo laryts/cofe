@@ -79,9 +79,10 @@ export default function ContributePage() {
         <h2 className="text-foreground font-medium">Why GitHub, and not a form on this site?</h2>
         <p className="text-muted-foreground mt-2 text-pretty">
           Honestly: because an open, unauthenticated submission form on a site with no accounts is a
-          spam magnet, and building the moderation tooling to handle that properly would have delayed
-          everything else. Submitting through GitHub means a person reviews each contribution and the
-          history stays public. In-app submission is planned once accounts exist — see the{" "}
+          spam magnet, and building the moderation tooling to handle that properly would have
+          delayed everything else. Submitting through GitHub means a person reviews each
+          contribution and the history stays public. In-app submission is planned once accounts
+          exist — see the{" "}
           <Link
             href={`${REPO_URL}/blob/main/docs/PLAN.md`}
             className="text-accent underline underline-offset-4"
