@@ -917,6 +917,22 @@ Two bugs surfaced in the process:
 `public/dev-map-style.json` was added: a zero-network MapLibre style so the map stays interactive
 offline or behind a proxy that blocks the tile host.
 
+### A third pass: hardening
+
+- **The geocoding service's own comment was false** — it claimed the provider was injected for
+  testability while importing it at module scope. The provider is now a parameter with a default.
+- **The geocode fallback rule moved into the domain** as a pure, tested predicate. It earns its place
+  there because it is a product rule and because it was wrong once (see above); the tests now state
+  why each condition exists.
+- **Contributor-supplied café websites were rendered straight into an `href`.** Only `http`/`https`
+  are allowed now; anything else is dropped. Verified by putting a `javascript:` URL in the database
+  and confirming it reaches the rendered HTML in no form at all.
+- **`/explore` had an `h2` with no `h1`**, orphaning the filter heading and leaving screen reader
+  users without a page title. It now carries an `sr-only` `h1` naming the current search.
+- **Café detail had no loading state.** Added a skeleton shaped like the real page.
+
+Test count: 85, up from 58.
+
 ### Deferred from this plan
 
 Nothing in the MVP scope was dropped. Section 4's "out of scope" list is unchanged.
