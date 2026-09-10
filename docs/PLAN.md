@@ -1,7 +1,7 @@
 # co-fe — Product & Engineering Plan
 
-> Status: **living document**. Written before implementation started, updated as decisions change.
-> Last revised: 2026-09-10.
+> Status: **living document**. Written before implementation started; §17 records what was actually
+> built. Last revised: 2026-09-10.
 
 ---
 
@@ -850,7 +850,50 @@ differentiator is gone.
 | 14 | Filters and viewport in the URL | Shareable, back-button-correct — cheap, high-value |
 | 15 | i18n-ready strings, English-only copy | Translation becomes a file, not a rewrite |
 
-## 17. Risks and open questions
+## 17. Implementation status
+
+The MVP described above is **built and running**. What shipped, and where it departed from the plan:
+
+| MVP capability | Status |
+| --- | --- |
+| Discovery by location, search, filters | ✅ Built, verified against a live database |
+| Map + list, synchronised | ✅ Built |
+| Café detail with explainable breakdown | ✅ Built — points column verified to sum to the headline |
+| Work Friendly Score with shrinkage + confidence | ✅ Built, 34 unit tests |
+| Demo dataset, clearly marked | ✅ 12 invented cafés, 51 reports, `source = 'seed'` |
+| Contribution via issue templates | ✅ Built |
+| Open source docs, licences, CI | ✅ Built |
+
+### Two changes made during implementation
+
+Both came from looking at the running application rather than from the plan:
+
+1. **Map tile failure needed its own error state.** When tiles do not load, the map degraded into a
+   blank white area with floating markers and no explanation — which reads as a broken page. It now
+   says what is missing and keeps the list fully usable. This is a real production case (expired
+   key, provider outage, offline user); it surfaced here because the development environment blocked
+   the tile host.
+
+2. **Mobile filters became a sheet.** The inline filter chips cost roughly 300px of vertical space on
+   a phone, pushing every result below the fold — so the first thing a mobile visitor saw was a
+   control panel rather than a café. Below 640px they now collapse behind a single button: four
+   cafés are visible above the fold instead of one, and filters stay one tap away.
+
+### Verified, not assumed
+
+- Migrate + seed on a completely fresh database: **2 seconds**, so the README's setup claim is measured.
+- The score breakdown's points column sums exactly to the headline number in the rendered HTML.
+- The single-report café publishes **no score at all**, end to end.
+- Map markers really do have a 44px hit area (clicks register to ±21px from centre).
+- The architectural boundary lint rules genuinely fire, with their intended messages.
+
+### Deferred from this plan
+
+Nothing in the MVP scope was dropped. Section 4's "out of scope" list is unchanged.
+
+---
+
+## 18. Risks and open questions
 
 | Risk | Severity | Mitigation |
 |---|---|---|
