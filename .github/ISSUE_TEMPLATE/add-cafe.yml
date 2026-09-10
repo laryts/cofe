@@ -1,0 +1,192 @@
+name: "☕ Add a café"
+description: "Suggest a café that should be on co-fe. No coding needed."
+title: "[Café] "
+labels: ["data", "new café"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for adding to co-fe.
+
+        **Please only add cafés you have actually worked in.** Walking past is not enough — the whole
+        point is first-hand knowledge of what it is like to sit down and open a laptop.
+
+        **Do not copy data from Google Maps, Yelp or similar.** That is a licensing problem that
+        would make the dataset unusable for everyone.
+
+  - type: input
+    id: name
+    attributes:
+      label: Café name
+      placeholder: "Estúdio Bica"
+    validations:
+      required: true
+
+  - type: input
+    id: address
+    attributes:
+      label: Address
+      placeholder: "Rua Dr. Diogo de Faria, 700"
+    validations:
+      required: true
+
+  - type: input
+    id: city
+    attributes:
+      label: City and neighbourhood
+      placeholder: "São Paulo — Vila Mariana"
+    validations:
+      required: true
+
+  - type: input
+    id: coordinates
+    attributes:
+      label: Coordinates (optional)
+      description: "Right-click the spot on openstreetmap.org and choose 'Show address' to get these. Skip if unsure — we can look it up."
+      placeholder: "-23.5892, -46.6354"
+
+  - type: input
+    id: website
+    attributes:
+      label: Website or social link (optional)
+
+  - type: input
+    id: hours
+    attributes:
+      label: Opening hours (optional)
+      description: "Free text is fine, e.g. 'Mon–Fri 8am–7pm, Sat 9am–4pm'."
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## Work conditions
+
+        Rate **1 to 5** based on a *typical* moment — not the best or worst you have seen.
+
+        **Leave anything blank if you did not observe it.** Blanks are handled properly and do not
+        count against the café. A guess is worse than a gap.
+
+  - type: dropdown
+    id: wifi
+    attributes:
+      label: "Wi-Fi"
+      options:
+        - "Not observed"
+        - "1 — No Wi-Fi, or unusable"
+        - "2 — Drops often, or a painful captive portal"
+        - "3 — Works for browsing and email"
+        - "4 — Reliable for calls and large downloads"
+        - "5 — Fast and rock solid all day"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: outlets
+    attributes:
+      label: "Power outlets"
+      options:
+        - "Not observed"
+        - "1 — None, or actively blocked off"
+        - "2 — One or two, usually taken"
+        - "3 — Some, if you pick your seat"
+        - "4 — Easy to find at most tables"
+        - "5 — At nearly every seat"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: seating
+    attributes:
+      label: "Seating & tables"
+      options:
+        - "Not observed"
+        - "1 — Nowhere to put a laptop"
+        - "2 — Small or wobbly tables, uncomfortable chairs"
+        - "3 — Workable for an hour"
+        - "4 — Comfortable tables at a good height"
+        - "5 — Genuinely desk-like, comfortable for hours"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: long-stay
+    attributes:
+      label: "Long stay — are you welcome to stay a few hours?"
+      options:
+        - "Not observed"
+        - "1 — Time limits, or you are asked to leave"
+        - "2 — Clearly discouraged at busy times"
+        - "3 — Fine if you keep ordering"
+        - "4 — Comfortable staying a few hours"
+        - "5 — Explicitly welcomed, people work here all day"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: noise
+    attributes:
+      label: "Noise — how easy is it to concentrate?"
+      options:
+        - "Not observed"
+        - "1 — Too loud to think"
+        - "2 — Often noisy, headphones essential"
+        - "3 — Normal café hum"
+        - "4 — Calm most of the time"
+        - "5 — Consistently quiet, library-like"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## Good to know
+
+        These filter results but do **not** affect the score — people want opposite things from them.
+
+  - type: dropdown
+    id: calls
+    attributes:
+      label: "Can you take a video or phone call here?"
+      options: ["Unknown", "Yes", "No"]
+
+  - type: dropdown
+    id: air-conditioning
+    attributes:
+      label: "Air conditioning"
+      options: ["Unknown", "Yes", "No"]
+
+  - type: dropdown
+    id: restroom
+    attributes:
+      label: "Restroom for customers"
+      options: ["Unknown", "Yes", "No"]
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else worth knowing?
+      description: "The practical detail that saves someone a wasted trip — where the sockets are, when it gets busy, whether the back room is quieter."
+      placeholder: "The long table at the back has sockets along its whole length. Gets busy around 1pm."
+
+  - type: input
+    id: visited
+    attributes:
+      label: When were you last there?
+      description: "Roughly is fine. Cafés change, so this tells readers how much to trust it."
+      placeholder: "March 2026"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Please confirm
+      options:
+        - label: "I have worked in this café myself, and this is my own first-hand experience."
+          required: true
+        - label: "I have not copied this from Google Maps, Yelp or any other proprietary source."
+          required: true
+        - label: "I agree to license this data under ODbL 1.0 (see DATA-LICENSE)."
+          required: true

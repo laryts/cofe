@@ -1,0 +1,46 @@
+name: "🐛 Bug report"
+description: "Something in the app is broken."
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /explore
+        2. Apply the "Quiet enough to focus" filter
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: "Firefox 140, macOS / Safari, iPhone 15"
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did you see this?
+      options: ["The hosted site", "Running locally", "Both"]
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or console errors (optional)

@@ -1,0 +1,586 @@
+{
+  "id": "9ed01e8b-b2bf-4eac-881f-76ca08f2c6ff",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.cafe_reports": {
+      "name": "cafe_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cafe_id": {
+          "name": "cafe_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "wifi_rating": {
+          "name": "wifi_rating",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "outlets_rating": {
+          "name": "outlets_rating",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "seating_rating": {
+          "name": "seating_rating",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "long_stay_rating": {
+          "name": "long_stay_rating",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "noise_rating": {
+          "name": "noise_rating",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "allows_calls": {
+          "name": "allows_calls",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_air_conditioning": {
+          "name": "has_air_conditioning",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_restroom": {
+          "name": "has_restroom",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contributor_handle": {
+          "name": "contributor_handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "report_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'community'"
+        },
+        "visited_at": {
+          "name": "visited_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retracted_at": {
+          "name": "retracted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cafe_reports_cafe_idx": {
+          "name": "cafe_reports_cafe_idx",
+          "columns": [
+            {
+              "expression": "cafe_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "retracted_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cafe_reports_cafe_id_cafes_id_fk": {
+          "name": "cafe_reports_cafe_id_cafes_id_fk",
+          "tableFrom": "cafe_reports",
+          "tableTo": "cafes",
+          "columnsFrom": [
+            "cafe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cafe_work_profiles": {
+      "name": "cafe_work_profiles",
+      "schema": "",
+      "columns": {
+        "cafe_id": {
+          "name": "cafe_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "wifi_score": {
+          "name": "wifi_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "outlets_score": {
+          "name": "outlets_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "seating_score": {
+          "name": "seating_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "long_stay_score": {
+          "name": "long_stay_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "noise_score": {
+          "name": "noise_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "work_friendly_score": {
+          "name": "work_friendly_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "confidence",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'none'"
+        },
+        "report_count": {
+          "name": "report_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "allows_calls": {
+          "name": "allows_calls",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_air_conditioning": {
+          "name": "has_air_conditioning",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_restroom": {
+          "name": "has_restroom",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_reported_at": {
+          "name": "last_reported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "computed_at": {
+          "name": "computed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cafe_work_profiles_score_idx": {
+          "name": "cafe_work_profiles_score_idx",
+          "columns": [
+            {
+              "expression": "\"work_friendly_score\" desc nulls last",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cafe_work_profiles_calls_idx": {
+          "name": "cafe_work_profiles_calls_idx",
+          "columns": [
+            {
+              "expression": "allows_calls",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cafe_work_profiles_cafe_id_cafes_id_fk": {
+          "name": "cafe_work_profiles_cafe_id_cafes_id_fk",
+          "tableFrom": "cafe_work_profiles",
+          "tableTo": "cafes",
+          "columnsFrom": [
+            "cafe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cafes": {
+      "name": "cafes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "neighborhood": {
+          "name": "neighborhood",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "char(2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "website": {
+          "name": "website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "opening_hours": {
+          "name": "opening_hours",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "osm_type": {
+          "name": "osm_type",
+          "type": "osm_element_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "osm_id": {
+          "name": "osm_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "cafe_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'community'"
+        },
+        "status": {
+          "name": "status",
+          "type": "cafe_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'published'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cafes_slug_key": {
+          "name": "cafes_slug_key",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cafes_lat_lng_idx": {
+          "name": "cafes_lat_lng_idx",
+          "columns": [
+            {
+              "expression": "latitude",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "longitude",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cafes_city_idx": {
+          "name": "cafes_city_idx",
+          "columns": [
+            {
+              "expression": "city",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cafes_status_idx": {
+          "name": "cafes_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cafes_osm_ref_key": {
+          "name": "cafes_osm_ref_key",
+          "columns": [
+            {
+              "expression": "osm_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "osm_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"cafes\".\"osm_type\" is not null and \"cafes\".\"osm_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.cafe_source": {
+      "name": "cafe_source",
+      "schema": "public",
+      "values": [
+        "seed",
+        "community",
+        "osm"
+      ]
+    },
+    "public.cafe_status": {
+      "name": "cafe_status",
+      "schema": "public",
+      "values": [
+        "published",
+        "pending",
+        "hidden"
+      ]
+    },
+    "public.confidence": {
+      "name": "confidence",
+      "schema": "public",
+      "values": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "public.osm_element_type": {
+      "name": "osm_element_type",
+      "schema": "public",
+      "values": [
+        "node",
+        "way",
+        "relation"
+      ]
+    },
+    "public.report_source": {
+      "name": "report_source",
+      "schema": "public",
+      "values": [
+        "seed",
+        "community",
+        "import"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
