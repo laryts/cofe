@@ -1,0 +1,27 @@
+# Local Postgres for co-fe development.
+#
+# Plain postgres:16-alpine — no PostGIS, no extensions. The MVP resolves
+# proximity with a bounding-box prefilter plus haversine, specifically so that
+# contributors do not need a specialised database image. See docs/PLAN.md §9.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: cofe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cofe
+      POSTGRES_PASSWORD: cofe
+      POSTGRES_DB: cofe
+    ports:
+      - "5432:5432"
+    volumes:
+      - cofe-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cofe -d cofe"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cofe-db-data:
