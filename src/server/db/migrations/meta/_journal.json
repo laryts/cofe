@@ -15,6 +15,13 @@
       "when": 1789074692462,
       "tag": "0001_wild_cassandra_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789084008796,
+      "tag": "0002_spooky_ben_urich",
+      "breakpoints": true
     }
   ]
 }

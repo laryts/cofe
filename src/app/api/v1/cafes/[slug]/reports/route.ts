@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { newReportSubmissionSchema } from "@/domain/cafe/submission";
 import { checkRateLimit, consumeRateLimit, fingerprint } from "@/server/rate-limit";
+import { attributionFor } from "@/domain/auth";
+import { getPrincipal } from "@/server/auth";
 import { submitReport } from "@/server/services/submission-service";
 
 import { apiError } from "../../../_lib/responses";
@@ -64,7 +66,9 @@ export async function POST(
   }
 
   try {
-    const result = await submitReport(slug, parsed.data);
+    // Contributing never requires an account; when someone happens to be
+    // signed in, the submission is attributed to them.
+    const result = await submitReport(slug, parsed.data, attributionFor(await getPrincipal()));
 
     if (!result.ok) {
       return result.reason === "unknown_cafe"

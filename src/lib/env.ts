@@ -28,20 +28,22 @@ const serverEnvSchema = z.object({
   GEOCODING_BASE_URL: z.string().url().default("https://nominatim.openstreetmap.org"),
 
   /**
-   * Shared secret gating the moderation queue.
+   * Clerk secret key. Optional so a fresh clone runs without an account.
    *
-   * Optional so a fresh clone runs without it — but when unset, moderation is
-   * unavailable rather than open. Failing closed means a missing variable can
-   * never silently expose the queue. Generate one with:
-   *   openssl rand -base64 32
+   * When absent every visitor is anonymous: browsing and contributing still
+   * work, and moderation is unavailable rather than open — the same
+   * fail-closed rule the whole privileged surface follows.
    */
-  MODERATION_TOKEN: z
-    .string()
-    .min(
-      24,
-      "MODERATION_TOKEN should be at least 24 characters. Generate one with: openssl rand -base64 32",
-    )
-    .optional(),
+  CLERK_SECRET_KEY: z.string().min(1).optional(),
+
+  /**
+   * Emails granted the moderator role on sign-in, comma separated.
+   *
+   * Bootstrapping only: a fresh deployment has no moderators and no way to
+   * appoint one. Removing an email here does not demote an existing moderator —
+   * see resolveRole in domain/auth.
+   */
+  MODERATOR_EMAILS: z.string().optional(),
 
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });

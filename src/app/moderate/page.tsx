@@ -1,4 +1,5 @@
-import { Check, Lock, MapPin, X } from "lucide-react";
+import { SignInButton, UserButton } from "@clerk/nextjs";
+import { Check, Lock, MapPin, ShieldAlert, X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { DIMENSION_LABELS, SCORED_DIMENSIONS } from "@/domain/scoring";
 import { formatRelativeDate } from "@/lib/format";
 import { messages } from "@/lib/i18n";
-import { isModerationConfigured, isModerator } from "@/server/moderation-auth";
+import { canModerate } from "@/domain/auth";
+import { getPrincipal, isAuthConfigured } from "@/server/auth";
 import {
   listPendingCafes,
   listPendingReports,
@@ -21,9 +23,7 @@ import {
   approveReportAction,
   rejectCafeAction,
   rejectReportAction,
-  signOut,
 } from "./actions";
-import { ModeratorSignIn } from "./sign-in";
 
 export const metadata: Metadata = {
   title: messages.contribute.moderation.title,
@@ -43,8 +43,11 @@ export const dynamic = "force-dynamic";
  * record and a repeat abuser stays visible.
  */
 export default async function ModeratePage() {
-  if (!isModerationConfigured()) return <NotConfigured />;
-  if (!(await isModerator())) return <ModeratorSignIn />;
+  if (!isAuthConfigured()) return <NotConfigured />;
+
+  const principal = await getPrincipal();
+  if (!principal) return <SignInRequired />;
+  if (!canModerate(principal)) return <NotAModeratorNotice />;
 
   const [pendingCafes, pendingReports] = await Promise.all([
     listPendingCafes(),
@@ -67,12 +70,7 @@ export default async function ModeratePage() {
           </p>
         </div>
 
-        <form action={signOut}>
-          <Button type="submit" variant="ghost" size="sm">
-            <Lock aria-hidden="true" />
-            {messages.contribute.moderation.signOut}
-          </Button>
-        </form>
+        <UserButton />
       </div>
 
       {pendingCafes.length > 0 && (
@@ -248,14 +246,64 @@ function PendingReportCard({ report }: { report: PendingReport }) {
 
 function NotConfigured() {
   return (
+    <Notice
+      icon={<Lock aria-hidden="true" className="text-muted-foreground mx-auto size-8" />}
+      title="Moderation is not configured"
+    >
+      Set <code className="font-mono text-sm">CLERK_SECRET_KEY</code> and{" "}
+      <code className="font-mono text-sm">MODERATOR_EMAILS</code> to enable the queue. Submissions
+      are still being collected in the meantime — they simply cannot be approved yet.
+    </Notice>
+  );
+}
+
+function SignInRequired() {
+  return (
+    <Notice
+      icon={<Lock aria-hidden="true" className="text-muted-foreground mx-auto size-8" />}
+      title={messages.contribute.moderation.signIn}
+    >
+      <span className="mb-6 block">{messages.contribute.moderation.signInHint}</span>
+      <SignInButton mode="modal">
+        <Button>{messages.contribute.moderation.signInCta}</Button>
+      </SignInButton>
+    </Notice>
+  );
+}
+
+/**
+ * Signed in, but not a moderator.
+ *
+ * Says so plainly rather than pretending the page does not exist: an ordinary
+ * member landing here has done nothing wrong, and a blank 404 would just be
+ * confusing. The queue itself is never rendered, which is what matters.
+ */
+function NotAModeratorNotice() {
+  return (
+    <Notice
+      icon={<ShieldAlert aria-hidden="true" className="text-score-mid mx-auto size-8" />}
+      title="You are signed in, but not a moderator"
+    >
+      Moderation is limited to reviewers. If you think you should have access, ask a maintainer to
+      add you.
+    </Notice>
+  );
+}
+
+function Notice({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
     <div className="mx-auto w-full max-w-md px-4 py-24 text-center sm:px-6">
-      <Lock aria-hidden="true" className="text-muted-foreground mx-auto size-8" />
-      <h1 className="font-display text-foreground mt-4 text-2xl">Moderation is not configured</h1>
-      <p className="text-muted-foreground mt-2 text-balance">
-        Set <code className="font-mono text-sm">MODERATION_TOKEN</code> in the environment to enable
-        the queue. Submissions are still being collected in the meantime — they simply cannot be
-        approved yet.
-      </p>
+      {icon}
+      <h1 className="font-display text-foreground mt-4 text-2xl text-balance">{title}</h1>
+      <p className="text-muted-foreground mt-2 text-balance">{children}</p>
     </div>
   );
 }

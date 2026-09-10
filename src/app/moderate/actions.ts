@@ -2,12 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
-import {
-  isModerationConfigured,
-  isModerator,
-  signInModerator,
-  signOutModerator,
-} from "@/server/moderation-auth";
+import { canModerate } from "@/domain/auth";
+import { getPrincipal } from "@/server/auth";
 import {
   approveCafe,
   approveReport,
@@ -23,53 +19,49 @@ import {
  * it directly, and a hidden button is not an access control.
  */
 
-async function requireModerator(): Promise<void> {
-  if (!(await isModerator())) throw new Error("Not authorised");
-}
-
-export async function signIn(_prev: unknown, formData: FormData) {
-  if (!isModerationConfigured()) {
-    return { error: "Moderation is not configured on this deployment." };
-  }
-
-  const token = String(formData.get("token") ?? "");
-  const ok = await signInModerator(token);
-
-  if (!ok) return { error: "That token is not right." };
-
-  revalidatePath("/moderate");
-  return { error: null };
-}
-
-export async function signOut() {
-  await signOutModerator();
-  revalidatePath("/moderate");
+/**
+ * Resolve the acting moderator, or refuse.
+ *
+ * Returns the principal rather than a boolean so every action records *who*
+ * decided — recording who decided is the whole point of having accounts.
+ */
+async function requireModerator(): Promise<{ id: string }> {
+  const principal = await getPrincipal();
+  if (!canModerate(principal)) throw new Error("Not authorised");
+  return principal as { id: string };
 }
 
 export async function approveCafeAction(formData: FormData) {
-  await requireModerator();
-  await approveCafe(String(formData.get("id")));
+  const moderator = await requireModerator();
+  await approveCafe(String(formData.get("id")), moderator.id);
   revalidatePath("/moderate");
   revalidatePath("/explore");
   revalidatePath("/");
 }
 
 export async function rejectCafeAction(formData: FormData) {
-  await requireModerator();
-  await rejectCafe(String(formData.get("id")), String(formData.get("note") ?? "") || undefined);
+  const moderator = await requireModerator();
+  await rejectCafe(
+    String(formData.get("id")),
+    moderator.id,
+    String(formData.get("note") ?? "") || undefined,
+  );
   revalidatePath("/moderate");
 }
 
 export async function approveReportAction(formData: FormData) {
-  await requireModerator();
-  const id = String(formData.get("id"));
-  await approveReport(id);
+  const moderator = await requireModerator();
+  await approveReport(String(formData.get("id")), moderator.id);
   revalidatePath("/moderate");
   revalidatePath("/explore");
 }
 
 export async function rejectReportAction(formData: FormData) {
-  await requireModerator();
-  await rejectReport(String(formData.get("id")), String(formData.get("note") ?? "") || undefined);
+  const moderator = await requireModerator();
+  await rejectReport(
+    String(formData.get("id")),
+    moderator.id,
+    String(formData.get("note") ?? "") || undefined,
+  );
   revalidatePath("/moderate");
 }

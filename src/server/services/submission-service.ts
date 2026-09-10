@@ -26,6 +26,8 @@ export type SubmissionOutcome =
 export async function submitCafe(
   input: NewCafeSubmission,
   fingerprint: string,
+  /** Local user id when the contributor was signed in; null when anonymous. */
+  submittedBy: string | null = null,
 ): Promise<SubmissionOutcome> {
   if (!hasSubstance({ ratings: input.ratings, comment: input.comment })) {
     return { ok: false, reason: "empty" };
@@ -52,12 +54,13 @@ export async function submitCafe(
       source: "community",
       status: "pending",
       submitterFingerprint: fingerprint,
+      submittedBy,
     })
     .returning({ id: cafes.id });
 
   if (!inserted) return { ok: false, reason: "unknown_cafe" };
 
-  await insertReport(inserted.id, input);
+  await insertReport(inserted.id, input, submittedBy);
 
   // No recompute: a pending café has no published reports, so its profile is
   // created when it is approved.
@@ -68,6 +71,7 @@ export async function submitCafe(
 export async function submitReport(
   slug: string,
   input: NewReportSubmission,
+  submittedBy: string | null = null,
 ): Promise<SubmissionOutcome> {
   if (!hasSubstance({ ratings: input.ratings, comment: input.comment })) {
     return { ok: false, reason: "empty" };
@@ -81,13 +85,14 @@ export async function submitReport(
 
   if (!cafe) return { ok: false, reason: "unknown_cafe" };
 
-  const id = await insertReport(cafe.id, input);
+  const id = await insertReport(cafe.id, input, submittedBy);
   return { ok: true, id };
 }
 
 async function insertReport(
   cafeId: string,
   input: NewCafeSubmission | NewReportSubmission,
+  userId: string | null,
 ): Promise<string> {
   const [report] = await db
     .insert(cafeReports)
@@ -105,6 +110,7 @@ async function insertReport(
       contributorHandle: input.contributorHandle,
       source: "community",
       status: "pending",
+      userId,
       visitedAt: parseVisitedAt(input.visitedAt),
     })
     .returning({ id: cafeReports.id });
@@ -276,23 +282,32 @@ export async function listPendingReports(): Promise<PendingReport[]> {
   }));
 }
 
-export async function approveCafe(cafeId: string): Promise<void> {
+export async function approveCafe(cafeId: string, moderatorId: string): Promise<void> {
   await db
     .update(cafes)
-    .set({ status: "published", moderatedAt: new Date(), updatedAt: new Date() })
+    .set({
+      status: "published",
+      moderatedAt: new Date(),
+      moderatedBy: moderatorId,
+      updatedAt: new Date(),
+    })
     .where(eq(cafes.id, cafeId));
 
   // Approving a café approves the report it arrived with — they are one
   // submission, and splitting them would publish a café with no score.
   await db
     .update(cafeReports)
-    .set({ status: "published", moderatedAt: new Date() })
+    .set({ status: "published", moderatedAt: new Date(), moderatedBy: moderatorId })
     .where(and(eq(cafeReports.cafeId, cafeId), eq(cafeReports.status, "pending")));
 
   await recomputeWorkProfile(db, cafeId);
 }
 
-export async function rejectCafe(cafeId: string, note?: string): Promise<void> {
+export async function rejectCafe(
+  cafeId: string,
+  moderatorId: string,
+  note?: string,
+): Promise<void> {
   // Hidden, not deleted: a decision should leave a record, and a repeat abuser
   // should be visible rather than silently resubmitting into a clean slate.
   await db
@@ -300,6 +315,7 @@ export async function rejectCafe(cafeId: string, note?: string): Promise<void> {
     .set({
       status: "hidden",
       moderatedAt: new Date(),
+      moderatedBy: moderatorId,
       moderationNote: note ?? null,
       updatedAt: new Date(),
     })
@@ -307,26 +323,41 @@ export async function rejectCafe(cafeId: string, note?: string): Promise<void> {
 
   await db
     .update(cafeReports)
-    .set({ status: "rejected", moderatedAt: new Date(), moderationNote: note ?? null })
+    .set({
+      status: "rejected",
+      moderatedAt: new Date(),
+      moderatedBy: moderatorId,
+      moderationNote: note ?? null,
+    })
     .where(and(eq(cafeReports.cafeId, cafeId), eq(cafeReports.status, "pending")));
 }
 
-export async function approveReport(reportId: string): Promise<void> {
+export async function approveReport(reportId: string, moderatorId: string): Promise<void> {
   const [report] = await db
     .update(cafeReports)
-    .set({ status: "published", moderatedAt: new Date(), updatedAt: new Date() })
+    .set({
+      status: "published",
+      moderatedAt: new Date(),
+      moderatedBy: moderatorId,
+      updatedAt: new Date(),
+    })
     .where(eq(cafeReports.id, reportId))
     .returning({ cafeId: cafeReports.cafeId });
 
   if (report) await recomputeWorkProfile(db, report.cafeId);
 }
 
-export async function rejectReport(reportId: string, note?: string): Promise<void> {
+export async function rejectReport(
+  reportId: string,
+  moderatorId: string,
+  note?: string,
+): Promise<void> {
   await db
     .update(cafeReports)
     .set({
       status: "rejected",
       moderatedAt: new Date(),
+      moderatedBy: moderatorId,
       moderationNote: note ?? null,
       updatedAt: new Date(),
     })

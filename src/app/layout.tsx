@@ -1,8 +1,10 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { messages } from "@/lib/i18n";
+import { getSessionState } from "@/server/auth";
 import { SITE_URL } from "@/lib/public-env";
 
 import "./globals.css";
@@ -49,8 +51,19 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  /*
+   * ClerkProvider is mounted only when Clerk is configured — it throws without
+   * a publishable key, which would break a fresh clone that has no Clerk
+   * account. Branching on deployment configuration is safe: unlike branching on
+   * session state, the tree is identical for every visitor to a given
+   * deployment, so there is nothing for hydration to disagree about.
+   */
+  // Resolved here, in app/, and passed down — components/ must not reach into
+  // the server layer (see docs/ARCHITECTURE.md).
+  const session = await getSessionState();
+
+  const content = (
     <html lang="en">
       <body className="flex min-h-dvh flex-col antialiased">
         <a
@@ -59,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           {messages.nav.skipToContent}
         </a>
-        <SiteHeader />
+        <SiteHeader authEnabled={session.enabled} signedIn={session.signedIn} />
         <main id="main" className="flex-1">
           {children}
         </main>
@@ -67,4 +80,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
+
+  return session.enabled ? <ClerkProvider>{content}</ClerkProvider> : content;
 }

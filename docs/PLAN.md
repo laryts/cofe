@@ -126,8 +126,10 @@ original reasoning is kept because the risks it names are real and still shape t
 - Defence in depth on the open endpoint: per-source rate limiting, a silent honeypot, a substance
   check, and URL validation before storage. Note the limiter is per-process and documented as
   insufficient alone — the queue is the real protection.
-- Moderator access is an **interim shared token**, not accounts. It gives no per-moderator identity
-  and no audit trail of who approved what; that needs real accounts, which remain V1 work.
+- Moderator access uses **real accounts via Clerk**, so every decision records who made it.
+  Identity is Clerk's; authorisation is ours — roles live in the `users` table and the rules are
+  pure functions in `domain/auth/`, testable without a network call. Clerk is optional at the
+  deployment level: with no keys the app runs with accounts disabled and moderation unavailable.
 
 ### The original recommendation (superseded)
 

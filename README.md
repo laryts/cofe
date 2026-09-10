@@ -76,6 +76,7 @@ Three deliberate choices, explained in full at `/score` and in [docs/PLAN.md](do
 | Styling | Tailwind CSS 4, shadcn/ui-style components on Radix |
 | Database | PostgreSQL 16 + Drizzle ORM |
 | Maps | MapLibre GL JS, OpenStreetMap data |
+| Auth | Clerk (identity only — roles live in our database) |
 | Validation | Zod |
 | Tests | Vitest |
 
@@ -118,7 +119,9 @@ superuser, no special image.
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata |
 | `GEOCODING_USER_AGENT` | no | Identifies your instance to the geocoder. **Change this before running in public** |
 | `GEOCODING_BASE_URL` | no | Geocoding endpoint; point at a self-hosted Nominatim if you have one |
-| `MODERATION_TOKEN` | no | Unlocks the moderation queue at `/moderate`. Unset means moderation is **unavailable**, not open. Generate with `openssl rand -base64 32` |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | no | Clerk publishable key. Without it the app runs with accounts disabled |
+| `CLERK_SECRET_KEY` | no | Clerk secret key |
+| `MODERATOR_EMAILS` | no | Comma-separated emails granted the moderator role on sign-in. Bootstrapping only |
 
 All are validated with Zod at startup, so a mistake fails immediately with a readable message.
 
@@ -164,18 +167,26 @@ invisible to visitors and counting toward no score — and a moderator approves 
 
 Rejected submissions are hidden rather than deleted, so a decision leaves a record.
 
-Set `MODERATION_TOKEN` to enable the queue. **When it is unset, moderation is unavailable rather than
-open** — it fails closed, so a missing variable can never expose the queue.
+Moderators sign in with a real account (Clerk), so every decision records **who** made it. Set
+`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `MODERATOR_EMAILS` to enable the queue.
+
+**With Clerk unconfigured the app still runs** — browsing and contributing both work signed out —
+and moderation is unavailable rather than open. It fails closed, so a missing variable can never
+expose the queue.
+
+### Accounts are optional
+
+Signing in is never required to browse or to contribute. An account gets your submissions attributed
+to you; it does not grant permission to submit. Moderation is the only thing that needs a role.
 
 Issues labelled `good first issue` are a reasonable place to start.
 
 ## Roadmap
 
 **Now (MVP)** — discovery, map and list, filters, café pages, the explainable score, demo data,
-in-app contribution form and moderation queue.
+in-app contribution form, accounts, and a moderation queue with a per-moderator audit trail.
 
-**V1** — real accounts (per-moderator identity, an audit trail, contributor attribution), city
-landing pages, first real OSM import, score time-decay.
+**V1** — city landing pages, first real OSM import, score time-decay, "my contributions", favourites.
 
 **V2** — photos, favourites, contributor reputation, "open now", personalised weighting, public API,
 PWA with offline lists, pt-BR and es.

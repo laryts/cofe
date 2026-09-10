@@ -16,6 +16,7 @@ export const messages = {
     contribute: "Contribute",
     github: "GitHub",
     skipToContent: "Skip to content",
+    signIn: "Sign in",
   },
   home: {
     heroTitle: "Find a café where you can actually work.",
@@ -107,11 +108,9 @@ export const messages = {
       reject: "Reject",
       pendingCafes: "Cafés awaiting review",
       pendingReports: "Reports awaiting review",
-      signIn: "Moderator access",
-      signInHint: "Enter the moderation token to review submissions.",
-      signInCta: "Unlock",
-      signOut: "Lock again",
-      wrongToken: "That token is not right.",
+      signIn: "Sign in to moderate",
+      signInHint: "Reviewing submissions needs a moderator account.",
+      signInCta: "Sign in",
     },
   },
   score: {

@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { newCafeSubmissionSchema } from "@/domain/cafe/submission";
 import { checkRateLimit, consumeRateLimit, fingerprint } from "@/server/rate-limit";
 import { parseCafeSearchParams, searchCafes } from "@/server/services/cafe-service";
+import { attributionFor } from "@/domain/auth";
+import { getPrincipal } from "@/server/auth";
 import { submitCafe } from "@/server/services/submission-service";
 
 import { apiError, toCafeSummaryDto } from "../_lib/responses";
@@ -98,7 +100,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await submitCafe(parsed.data, client);
+    // Contributing never requires an account; when someone happens to be
+    // signed in, the submission is attributed to them.
+    const result = await submitCafe(parsed.data, client, attributionFor(await getPrincipal()));
 
     if (!result.ok) {
       return apiError(
