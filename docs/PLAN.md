@@ -887,6 +887,36 @@ Both came from looking at the running application rather than from the plan:
 - Map markers really do have a 44px hit area (clicks register to ±21px from centre).
 - The architectural boundary lint rules genuinely fire, with their intended messages.
 
+### A second pass: closing the gaps
+
+A follow-up audit compared what was *wired* against what was *written*, and found three MVP
+capabilities that were specified but not actually reachable:
+
+1. **The geocoder was dead code.** Built, exposed at `/api/v1/geocode`, and never called — so
+   searching a city we hold no data for returned silence. Text search now runs against our own data
+   first, and only an empty result falls back to geocoding. That keeps external calls rare (well
+   inside the usage policy) and lets the empty state say *"no cafés in Berlin yet — we found the
+   place, we just have no data for it"*, which frames the gap as ours rather than the user's typo.
+   The fallback is skipped when filters are active, since an empty result then means the filters
+   excluded everything.
+2. **"Search this area" was undelivered** — the user story in §5 existed, along with an unused i18n
+   string and an unused prop. It now appears after a pan past 1.5km and writes the new centre into
+   the URL, so a re-search stays shareable.
+3. **Map/list sync was one-directional.** Hovering a marker now highlights its row, and clicking one
+   scrolls that row into view.
+
+Two bugs surfaced in the process:
+
+- The tile-error detector matched any error mentioning "style", "glyph" or "tile", so a harmless
+  style-spec validation warning declared the basemap broken — and, because the search button was
+  gated on that flag, hid the feature entirely. It now keys off genuine load failures only.
+- **The homepage and sitemap hard-failed the build when Postgres was unreachable.** Their value —
+  the proposition, the score explainer, the CTA — needs no database, so both now degrade to an empty
+  list. Verified by building with Postgres stopped.
+
+`public/dev-map-style.json` was added: a zero-network MapLibre style so the map stays interactive
+offline or behind a proxy that blocks the tile host.
+
 ### Deferred from this plan
 
 Nothing in the MVP scope was dropped. Section 4's "out of scope" list is unchanged.
