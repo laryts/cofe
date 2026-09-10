@@ -73,6 +73,18 @@ export function ExploreView({ cafes, hasDemoData, resolvedPlace }: ExploreViewPr
     <div className="flex h-[calc(100dvh-4rem)] flex-col">
       <div className="border-border bg-background border-b px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+          {/*
+            The visual hierarchy here is carried by the search field, and a large
+            page title would eat the vertical space the mobile layout works hard
+            to reclaim. The heading outline still needs a root, though — without
+            an h1 the filter heading below is an orphan and screen reader users
+            get no page title at all. It names the current search when there is
+            one, so it is genuinely informative rather than decorative.
+          */}
+          <h1 className="sr-only">
+            {state.query ? messages.explore.titleFor(state.query) : messages.explore.title}
+          </h1>
+
           <LocationSearch
             defaultValue={state.query}
             onSearch={setQuery}

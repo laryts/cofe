@@ -39,6 +39,7 @@ export const messages = {
   },
   explore: {
     title: "Explore cafés",
+    titleFor: (query: string) => `Cafés matching “${query}”`,
     resultsCount: (count: number) => `${count} ${count === 1 ? "café" : "cafés"}`,
     noResults: "No cafés match these filters",
     noResultsHint: "Try removing a filter, or searching a different area.",

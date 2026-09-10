@@ -2,7 +2,12 @@ import "server-only";
 
 import { z } from "zod";
 
-import { CAFE_FILTER_KEYS, clampMinScore, type CafeFilters } from "@/domain/cafe";
+import {
+  CAFE_FILTER_KEYS,
+  clampMinScore,
+  shouldGeocodeFallback,
+  type CafeFilters,
+} from "@/domain/cafe";
 import type { CafeDetail, CafeSummary } from "@/domain/cafe";
 
 import { geocode } from "@/server/services/geocoding-service";
@@ -83,16 +88,19 @@ export async function searchCafes(input: CafeSearchInput): Promise<CafeSearchRes
    * then gets "we found the place, we just have no cafés there" instead of
    * silence.
    */
-  const hasActiveFilters = Object.values(input.filters ?? {}).some(Boolean);
+  const query = input.q;
+  const useGeocoder =
+    query !== undefined &&
+    shouldGeocodeFallback({
+      query,
+      hasOrigin,
+      filters: input.filters,
+      directResultCount: direct.total,
+    });
 
-  // Skip the fallback when filters are active: an empty result then means "your
-  // filters excluded everything", not "we have no data for this place". Saying
-  // the latter would be wrong, and it would waste an external call proving it.
-  if (direct.total > 0 || !input.q || hasOrigin || hasActiveFilters) {
-    return { ...direct, resolvedPlace: null };
-  }
+  if (!useGeocoder) return { ...direct, resolvedPlace: null };
 
-  const place = await resolvePlace(input.q);
+  const place = await resolvePlace(query);
   if (!place) return { ...direct, resolvedPlace: null };
 
   const nearby = await findCafes({

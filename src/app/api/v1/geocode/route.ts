@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const results = await geocode(query, request.signal);
+    const results = await geocode(query, { signal: request.signal });
 
     return NextResponse.json(
       { data: results },

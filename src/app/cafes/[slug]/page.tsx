@@ -8,6 +8,7 @@ import { ScoreBadge } from "@/components/cafe/score-badge";
 import { ScoreBreakdown } from "@/components/cafe/score-breakdown";
 import { WorkProfileGrid } from "@/components/cafe/work-profile-grid";
 import { Button } from "@/components/ui/button";
+import { formatUrlForDisplay, safeExternalUrl } from "@/domain/cafe";
 import { confidenceExplanation, scoreBand, scoreBandLabel } from "@/domain/scoring";
 import { formatRelativeDate, isStale } from "@/lib/format";
 import { messages } from "@/lib/i18n";
@@ -53,6 +54,8 @@ export default async function CafePage(props: PageProps<"/cafes/[slug]">) {
   const { profile } = cafe;
   const band = scoreBand(profile.workFriendlyScore);
   const stale = isStale(profile.lastReportedAt);
+  // Contributor-supplied, so it is validated before it reaches an href.
+  const websiteUrl = safeExternalUrl(cafe.website);
 
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -144,17 +147,17 @@ export default async function CafePage(props: PageProps<"/cafes/[slug]">) {
             />
           )}
 
-          {cafe.website && (
+          {websiteUrl && (
             <DetailRow
               label={messages.cafe.website}
               value={
                 <a
-                  href={cafe.website}
+                  href={websiteUrl}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="text-accent inline-flex items-center gap-1.5 underline underline-offset-4"
                 >
-                  {cafe.website.replace(/^https?:\/\//, "")}
+                  {formatUrlForDisplay(websiteUrl)}
                   <ExternalLink aria-hidden="true" className="size-3.5" />
                 </a>
               }

@@ -3,7 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { nominatimProvider } from "@/server/integrations/geocoding/nominatim";
-import type { GeocodeResult } from "@/server/integrations/geocoding/types";
+import type { GeocodeResult, GeocodingProvider } from "@/server/integrations/geocoding/types";
 
 export const geocodeQuerySchema = z.object({
   q: z.string().trim().min(2).max(160),
@@ -12,13 +12,17 @@ export const geocodeQuerySchema = z.object({
 /**
  * Resolve a place name to coordinates.
  *
- * The provider is injected rather than imported at the call site so the search
- * flow can be tested, and so swapping Nominatim for a self-hosted instance is a
- * one-line change here.
+ * The provider is a parameter with a default rather than a hard module
+ * reference, so swapping Nominatim for a self-hosted instance is a one-line
+ * change here, and callers can pass a stub without patching the module graph.
  */
-export async function geocode(query: string, signal?: AbortSignal): Promise<GeocodeResult[]> {
+export async function geocode(
+  query: string,
+  options: { signal?: AbortSignal; provider?: GeocodingProvider } = {},
+): Promise<GeocodeResult[]> {
   const parsed = geocodeQuerySchema.safeParse({ q: query });
   if (!parsed.success) return [];
 
-  return nominatimProvider.search(parsed.data.q, signal);
+  const provider = options.provider ?? nominatimProvider;
+  return provider.search(parsed.data.q, options.signal);
 }
