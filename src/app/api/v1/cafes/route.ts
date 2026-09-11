@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { newCafeSubmissionSchema } from "@/domain/cafe/submission";
+import { checkRateLimit, consumeRateLimit, fingerprint } from "@/server/rate-limit";
 import { parseCafeSearchParams, searchCafes } from "@/server/services/cafe-service";
+import { attributionFor } from "@/domain/auth";
+import { getPrincipal } from "@/server/auth";
+import { submitCafe } from "@/server/services/submission-service";
 
 import { apiError, toCafeSummaryDto } from "../_lib/responses";
 
@@ -34,5 +39,86 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("GET /api/v1/cafes failed", error);
     return apiError("internal_error", "Could not load cafés.");
+  }
+}
+
+/** How many cafés one source may submit per hour. */
+const SUBMIT_LIMIT = 5;
+const SUBMIT_WINDOW_MS = 60 * 60 * 1000;
+
+/**
+ * POST /api/v1/cafes — propose a new café.
+ *
+ * Open to anyone, no account required. That is safe because the submission
+ * lands as `pending`: it is invisible to visitors and contributes nothing to
+ * any score until a moderator approves it.
+ */
+export async function POST(request: NextRequest) {
+  const client = fingerprint(request);
+  const limit = checkRateLimit(`cafe:${client}`, SUBMIT_LIMIT, SUBMIT_WINDOW_MS);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "rate_limited",
+          message: "That is a lot of cafés at once. Please try again a bit later.",
+        },
+      },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return apiError("bad_request", "Expected a JSON body.");
+  }
+
+  const parsed = newCafeSubmissionSchema.safeParse(payload);
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "bad_request",
+          message: "Some fields need attention.",
+          details: parsed.error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
+        },
+      },
+      { status: 400 },
+    );
+  }
+
+  // Honeypot: a hidden field only a bot fills in. Answer as though it worked,
+  // so a bot gets no signal about why it failed.
+  if (parsed.data.website_url) {
+    return NextResponse.json({ data: { status: "pending" } }, { status: 202 });
+  }
+
+  try {
+    // Contributing never requires an account; when someone happens to be
+    // signed in, the submission is attributed to them.
+    const result = await submitCafe(parsed.data, client, attributionFor(await getPrincipal()));
+
+    if (!result.ok) {
+      return apiError(
+        "bad_request",
+        result.reason === "empty"
+          ? "Add at least one rating or a note, so there is something to review."
+          : "Could not accept that submission.",
+      );
+    }
+
+    // Charged only now that something is actually stored.
+    consumeRateLimit(`cafe:${client}`, SUBMIT_LIMIT, SUBMIT_WINDOW_MS);
+
+    return NextResponse.json({ data: { id: result.id, status: "pending" } }, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/v1/cafes failed", error);
+    return apiError("internal_error", "Could not save that café.");
   }
 }

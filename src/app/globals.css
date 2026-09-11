@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Clerk components, themed to the co-fe palette via the shadcn aliases below. */
+@import "@clerk/ui/themes/shadcn.css";
 
 /*
  * co-fe design tokens
@@ -41,6 +43,25 @@
   --ring: oklch(0.585 0.135 42);
 
   --radius: 0.625rem;
+
+  /* ── shadcn-compatible aliases ────────────────────────────────────────────
+     Clerk's shadcn theme (and anything added later with `shadcn add`) reads the
+     standard shadcn variable names. Our own tokens are named for what they mean;
+     these map that vocabulary onto them so third-party components inherit the
+     co-fe palette instead of rendering colourless. */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-foreground);
+  --secondary: var(--surface-sunken);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-sunken);
+  --muted-foreground: var(--muted-foreground);
+  --destructive: var(--score-low);
+  --destructive-foreground: var(--accent-foreground);
+  --input: var(--border-strong);
 }
 
 @media (prefers-color-scheme: dark) {

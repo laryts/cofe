@@ -76,6 +76,7 @@ Three deliberate choices, explained in full at `/score` and in [docs/PLAN.md](do
 | Styling | Tailwind CSS 4, shadcn/ui-style components on Radix |
 | Database | PostgreSQL 16 + Drizzle ORM |
 | Maps | MapLibre GL JS, OpenStreetMap data |
+| Auth | Clerk (identity only — roles live in our database) |
 | Validation | Zod |
 | Tests | Vitest |
 
@@ -96,8 +97,7 @@ pnpm install
 cp .env.example .env          # defaults match docker-compose
 docker compose up -d db       # plain postgres:16-alpine, no extensions
 
-pnpm db:migrate               # create the schema
-pnpm db:seed                  # load the demo dataset
+pnpm db:reset                 # create the schema, then load the demo dataset
 pnpm dev                      # http://localhost:3000
 ```
 
@@ -118,6 +118,9 @@ superuser, no special image.
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata |
 | `GEOCODING_USER_AGENT` | no | Identifies your instance to the geocoder. **Change this before running in public** |
 | `GEOCODING_BASE_URL` | no | Geocoding endpoint; point at a self-hosted Nominatim if you have one |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | no | Clerk publishable key. Without it the app runs with accounts disabled |
+| `CLERK_SECRET_KEY` | no | Clerk secret key |
+| `MODERATOR_EMAILS` | no | Comma-separated emails granted the moderator role on sign-in. Bootstrapping only |
 
 All are validated with Zod at startup, so a mistake fails immediately with a readable message.
 
@@ -131,6 +134,7 @@ pnpm test           # unit tests
 pnpm db:generate    # generate a migration after changing the schema
 pnpm db:migrate     # apply migrations
 pnpm db:seed        # reload demo data (only touches source = 'seed' rows)
+pnpm db:reset       # migrate then seed, in the right order
 pnpm db:studio      # Drizzle Studio
 ```
 
@@ -149,21 +153,45 @@ data arrives, seed data is deleted rather than blended in.
 co-fe only works if people who know their neighbourhood fill it in. No algorithm knows whether the
 chairs are comfortable — someone has to have sat in them.
 
-- **[Add a café](https://github.com/laryts/cofe/issues/new?template=add-cafe.yml)** — a structured
-  form, no coding needed
-- **[Correct something](https://github.com/laryts/cofe/issues/new?template=update-cafe.yml)** — cafés
-  change, and stale data is worse than none
+- **Add a café at `/add`** — an in-app form: pin it on a map, rate the work conditions, done. No
+  account needed. A moderator reviews it before it goes live.
+- **Report on a café you have worked in** — same flow, from the café's own page. Cafés change, and
+  stale data is worse than none.
 - **[Contribute code](CONTRIBUTING.md)** — small codebase, documented architecture, five-minute setup
+
+### How moderation works
+
+Anyone can submit; nothing appears until a person approves it. Submissions land as `pending` —
+invisible to visitors and counting toward no score — and a moderator approves or rejects them at
+`/moderate`. That is what lets the form stay open and account-free without becoming a spam target.
+
+Rejected submissions are hidden rather than deleted, so a decision leaves a record.
+
+Moderators sign in with a real account (Clerk), so every decision records **who** made it.
+
+```bash
+npx clerk@latest init --app app_3JA5p852G6H58QcYHZTxediufKS   # writes the keys into .env
+```
+
+Then set `MODERATOR_EMAILS` to your own email to appoint the first moderator.
+
+**With Clerk unconfigured the app still runs** — browsing and contributing both work signed out —
+and moderation is unavailable rather than open. It fails closed, so a missing variable can never
+expose the queue.
+
+### Accounts are optional
+
+Signing in is never required to browse or to contribute. An account gets your submissions attributed
+to you; it does not grant permission to submit. Moderation is the only thing that needs a role.
 
 Issues labelled `good first issue` are a reasonable place to start.
 
 ## Roadmap
 
 **Now (MVP)** — discovery, map and list, filters, café pages, the explainable score, demo data,
-contribution via issue templates.
+in-app contribution form, accounts, and a moderation queue with a per-moderator audit trail.
 
-**V1** — accounts, in-app report submission, moderation queue, city landing pages, first real OSM
-import, score time-decay.
+**V1** — city landing pages, first real OSM import, score time-decay, "my contributions", favourites.
 
 **V2** — photos, favourites, contributor reputation, "open now", personalised weighting, public API,
 PWA with offline lists, pt-BR and es.

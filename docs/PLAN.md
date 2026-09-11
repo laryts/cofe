@@ -94,7 +94,7 @@ architecture with no working screen is a failure.
 | 5 | **Café detail page** | Full work profile, opening hours, community notes, data freshness |
 | 6 | **Work Friendly Score** | Computed, **explainable**, with an honest confidence signal |
 | 7 | **Score explanation** | A dedicated page + inline breakdown; no black boxes |
-| 8 | **Contribute pathway** | Structured GitHub issue template — see the decision below |
+| 8 | **Contribute pathway** | In-app form at `/add` + moderation queue at `/moderate` |
 | 9 | **Demo dataset** | Seed data, unmistakably labelled as demo, never presented as real |
 
 ### Explicitly out of scope for MVP
@@ -102,8 +102,8 @@ architecture with no working screen is a failure.
 | Not building | Why |
 |---|---|
 | **User accounts / auth** | Nothing in the MVP read path needs identity. Adding auth now costs days and buys nothing yet. |
-| **In-app review submission** | See "The contribution decision" below — this is the one deliberately contrarian call in this plan. |
-| **Moderation tooling** | Follows auth. Without in-app writes there is nothing to moderate. |
+| ~~In-app review submission~~ | **Now in scope** — built. See the decision above. |
+| ~~Moderation tooling~~ | **Now in scope** — approve/reject queue, gated by a shared token pending real accounts. |
 | **Photos / uploads** | Storage, moderation, EXIF-stripping, copyright. Large surface, small MVP payoff. |
 | **Check-ins, occupancy, "people here now"** | Requires a user base that does not exist yet. Cold-start death. |
 | **Favourites, badges, gamification, profiles** | All depend on auth. All are retention features for a product with no users yet. |
@@ -112,7 +112,26 @@ architecture with no working screen is a failure.
 | **Native mobile app** | The API boundary is built now; the Expo client comes later. |
 | **AI anything** | Explicitly excluded from scoring. A score you cannot audit is a score nobody trusts. |
 
-### The contribution decision (needs your attention)
+### ✅ Decided: the in-app form ships in the MVP
+
+**This section is superseded.** The recommendation below was to defer the in-app form; the project
+owner decided otherwise, and the form, the submission API and the moderation queue are now built. The
+original reasoning is kept because the risks it names are real and still shape the design:
+
+- Submission is **open and account-free**, so contributing is genuinely easy — the Waze / Google
+  Places / iOverlander model of "anyone can add a point, everyone sees it".
+- The spam risk is answered by **moderation rather than by a login wall**: every submission lands
+  `pending`, invisible to visitors and contributing nothing to any score until a moderator approves.
+  A rejected submission is hidden, not deleted, so a decision leaves a record.
+- Defence in depth on the open endpoint: per-source rate limiting, a silent honeypot, a substance
+  check, and URL validation before storage. Note the limiter is per-process and documented as
+  insufficient alone — the queue is the real protection.
+- Moderator access uses **real accounts via Clerk**, so every decision records who made it.
+  Identity is Clerk's; authorisation is ours — roles live in the `users` table and the rules are
+  pure functions in `domain/auth/`, testable without a network call. Clerk is optional at the
+  deployment level: with no keys the app runs with accounts disabled and moderation unavailable.
+
+### The original recommendation (superseded)
 
 The brief lists *"I want to contribute information about a café"* as a user story, and makes Phase 6
 conditional on whether contributions stay in the MVP. **My recommendation: ship the contribution

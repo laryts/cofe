@@ -146,7 +146,13 @@ export async function findCafeBySlug(slug: string): Promise<CafeDetail | null> {
   const reports = await db
     .select()
     .from(cafeReports)
-    .where(and(eq(cafeReports.cafeId, cafe.id), sql`${cafeReports.retractedAt} is null`))
+    .where(
+      and(
+        eq(cafeReports.cafeId, cafe.id),
+        eq(cafeReports.status, "published"),
+        sql`${cafeReports.retractedAt} is null`,
+      ),
+    )
     .orderBy(sql`coalesce(${cafeReports.visitedAt}, ${cafeReports.createdAt}) desc`);
 
   /*

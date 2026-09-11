@@ -10,6 +10,8 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
+import { reportScriptFailure } from "../errors";
+
 import { recomputeWorkProfile } from "../profile-aggregation";
 import { cafeReports, cafes } from "../schema";
 import { SEED_CAFES } from "./data";
@@ -83,6 +85,7 @@ async function main() {
           // must not fake. See docs/PLAN.md §16.
           contributorHandle: null,
           source: "seed" as const,
+          status: "published" as const,
           visitedAt: daysAgoToDate(report.daysAgo),
           createdAt: daysAgoToDate(report.daysAgo),
         })),
@@ -99,6 +102,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  console.error("✗ Seed failed:", error);
-  process.exitCode = 1;
+  reportScriptFailure("Seed failed", error);
 });

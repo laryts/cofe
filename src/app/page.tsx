@@ -120,7 +120,7 @@ export default async function HomePage() {
           </p>
 
           <Button asChild className="mt-6">
-            <Link href="/contribute">
+            <Link href="/add">
               <MapPinPlus aria-hidden="true" />
               {messages.home.contributeCta}
             </Link>

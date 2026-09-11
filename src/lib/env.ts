@@ -27,6 +27,24 @@ const serverEnvSchema = z.object({
 
   GEOCODING_BASE_URL: z.string().url().default("https://nominatim.openstreetmap.org"),
 
+  /**
+   * Clerk secret key. Optional so a fresh clone runs without an account.
+   *
+   * When absent every visitor is anonymous: browsing and contributing still
+   * work, and moderation is unavailable rather than open — the same
+   * fail-closed rule the whole privileged surface follows.
+   */
+  CLERK_SECRET_KEY: z.string().min(1).optional(),
+
+  /**
+   * Emails granted the moderator role on sign-in, comma separated.
+   *
+   * Bootstrapping only: a fresh deployment has no moderators and no way to
+   * appoint one. Removing an email here does not demote an existing moderator —
+   * see resolveRole in domain/auth.
+   */
+  MODERATOR_EMAILS: z.string().optional(),
+
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 

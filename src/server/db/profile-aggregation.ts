@@ -23,10 +23,21 @@ export async function recomputeWorkProfile(
   db: PostgresJsDatabase<Record<string, unknown>>,
   cafeId: string,
 ): Promise<void> {
+  /*
+   * Only approved reports count. A pending submission must not move a score —
+   * otherwise the moderation queue would be decorative, and anyone could shift
+   * a café's rating just by submitting.
+   */
   const reports = await db
     .select()
     .from(cafeReports)
-    .where(and(eq(cafeReports.cafeId, cafeId), isNull(cafeReports.retractedAt)));
+    .where(
+      and(
+        eq(cafeReports.cafeId, cafeId),
+        eq(cafeReports.status, "published"),
+        isNull(cafeReports.retractedAt),
+      ),
+    );
 
   const ratings: DimensionRatings[] = reports.map((report) => ({
     wifi: report.wifiRating,

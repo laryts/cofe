@@ -36,8 +36,55 @@ import {
 export const cafeSourceEnum = pgEnum("cafe_source", ["seed", "community", "osm"]);
 export const cafeStatusEnum = pgEnum("cafe_status", ["published", "pending", "hidden"]);
 export const reportSourceEnum = pgEnum("report_source", ["seed", "community", "import"]);
+/**
+ * Moderation state for a community report.
+ *
+ * Anyone can submit; nothing reaches a visitor or moves a score until a
+ * moderator approves it. `rejected` is kept rather than deleted so a decision
+ * has a record and a repeat abuser is visible.
+ */
+export const reportStatusEnum = pgEnum("report_status", ["pending", "published", "rejected"]);
 export const osmElementTypeEnum = pgEnum("osm_element_type", ["node", "way", "relation"]);
 export const confidenceEnum = pgEnum("confidence", ["none", "low", "medium", "high"]);
+export const userRoleEnum = pgEnum("user_role", ["user", "moderator", "admin"]);
+
+/**
+ * People with accounts.
+ *
+ * Clerk owns identity — sign-in, email verification, password reset, sessions.
+ * This table owns everything else: what a person may do, and what they have
+ * contributed.
+ *
+ * ★ `role` deliberately lives here rather than in Clerk metadata. Authorisation
+ * then becomes a query against our own data, testable without reaching a
+ * third-party API, and it means a change of auth provider would not take the
+ * permission model with it.
+ *
+ * Rows are created lazily on the first authenticated request rather than by
+ * webhook: no public URL to configure, no signing secret, and no "the webhook
+ * never fired" class of bug. Profile changes land on the next visit, which is
+ * plenty for this product.
+ */
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clerkUserId: text("clerk_user_id").notNull(),
+    email: text("email"),
+    displayName: text("display_name"),
+    avatarUrl: text("avatar_url"),
+    role: userRoleEnum("role").notNull().default("user"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("users_clerk_id_key").on(table.clerkUserId),
+    index("users_role_idx").on(table.role),
+  ],
+);
+
+export type UserRow = typeof users.$inferSelect;
+export type NewUserRow = typeof users.$inferInsert;
 
 export const cafes = pgTable(
   "cafes",
@@ -72,7 +119,21 @@ export const cafes = pgTable(
     osmId: bigint("osm_id", { mode: "number" }),
 
     source: cafeSourceEnum("source").notNull().default("community"),
-    status: cafeStatusEnum("status").notNull().default("published"),
+    status: cafeStatusEnum("status").notNull().default("pending"),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    moderationNote: text("moderation_note"),
+    /** Who decided. Null for anything not moderated by a signed-in person. */
+    moderatedBy: uuid("moderated_by"),
+    /** Set when a signed-in person submitted this; null for anonymous. */
+    submittedBy: uuid("submitted_by"),
+
+    /**
+     * Coarse origin of a public submission, hashed.
+     *
+     * Never the raw address: it is enough to spot one source flooding the queue,
+     * without keeping a log of who submitted what from where. See SECURITY.md.
+     */
+    submitterFingerprint: text("submitter_fingerprint"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -84,6 +145,7 @@ export const cafes = pgTable(
     index("cafes_lat_lng_idx").on(table.latitude, table.longitude),
     index("cafes_city_idx").on(table.city),
     index("cafes_status_idx").on(table.status),
+    index("cafes_pending_idx").on(table.status, table.createdAt),
     uniqueIndex("cafes_osm_ref_key")
       .on(table.osmType, table.osmId)
       .where(sql`${table.osmType} is not null and ${table.osmId} is not null`),
@@ -119,6 +181,15 @@ export const cafeReports = pgTable(
     contributorHandle: text("contributor_handle"),
     source: reportSourceEnum("source").notNull().default("community"),
 
+    /* Community submissions arrive pending. Seed and import data is published
+       directly, since it does not come from the public form. */
+    status: reportStatusEnum("status").notNull().default("pending"),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    moderationNote: text("moderation_note"),
+    moderatedBy: uuid("moderated_by"),
+    /** Set when a signed-in person submitted this; null for anonymous. */
+    userId: uuid("user_id"),
+
     /** When the contributor was actually there — the basis for freshness. */
     visitedAt: date("visited_at", { mode: "date" }),
 
@@ -128,7 +199,11 @@ export const cafeReports = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("cafe_reports_cafe_idx").on(table.cafeId, table.retractedAt)],
+  (table) => [
+    index("cafe_reports_cafe_idx").on(table.cafeId, table.status, table.retractedAt),
+    // Drives the moderation queue: oldest pending first.
+    index("cafe_reports_status_idx").on(table.status, table.createdAt),
+  ],
 );
 
 export const cafeWorkProfiles = pgTable(

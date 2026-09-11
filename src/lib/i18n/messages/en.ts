@@ -16,6 +16,8 @@ export const messages = {
     contribute: "Contribute",
     github: "GitHub",
     skipToContent: "Skip to content",
+    signIn: "Sign in",
+    signUp: "Sign up",
   },
   home: {
     heroTitle: "Find a café where you can actually work.",
@@ -89,6 +91,28 @@ export const messages = {
     improveCta: "Something out of date? Update this café",
     notFound: "We could not find that café",
     notFoundHint: "It may have been removed, or the link may be wrong.",
+  },
+  contribute: {
+    title: "Add a café",
+    subtitle:
+      "Somewhere you have actually worked. It takes a couple of minutes, and a moderator checks it before it goes live.",
+    submit: "Submit for review",
+    thanksTitle: "Thank you — it is in the queue",
+    thanksBody:
+      "A moderator will review it shortly. Once approved it appears on the map and starts counting towards a Work Friendly Score.",
+    reportTitle: "Update this café",
+    reportSubtitle: "Something changed, or you have your own take? Add a report.",
+    moderation: {
+      title: "Moderation queue",
+      empty: "Nothing waiting. The queue is clear.",
+      approve: "Approve",
+      reject: "Reject",
+      pendingCafes: "Cafés awaiting review",
+      pendingReports: "Reports awaiting review",
+      signIn: "Sign in to moderate",
+      signInHint: "Reviewing submissions needs a moderator account.",
+      signInCta: "Sign in",
+    },
   },
   score: {
     title: "The Work Friendly Score",

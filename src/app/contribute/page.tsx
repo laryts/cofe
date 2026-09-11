@@ -28,9 +28,10 @@ export default function ContributePage() {
     {
       icon: MapPinPlus,
       title: "Add a café",
-      body: "Know somewhere good? The form asks for the same fields the database stores — location, Wi-Fi, power, noise, seating and how welcome long stays are.",
-      href: `${REPO_URL}/issues/new?template=add-cafe.yml`,
+      body: "Know somewhere good? Pin it on the map and tell people what the Wi-Fi, power, seating and noise are actually like. A moderator reviews it before it goes live.",
+      href: "/add",
       cta: "Open the form",
+      internal: true,
     },
     {
       icon: PencilLine,

@@ -1,8 +1,11 @@
+import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import type { Metadata, Viewport } from "next";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { messages } from "@/lib/i18n";
+import { getSessionState } from "@/server/auth";
 import { SITE_URL } from "@/lib/public-env";
 
 import "./globals.css";
@@ -49,21 +52,45 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Resolved here, in app/, and passed down — components/ must not reach into
+  // the server layer (see docs/ARCHITECTURE.md).
+  const session = await getSessionState();
+
+  const body = (
+    <>
+      <a
+        href="#main"
+        className="bg-accent text-accent-foreground focus:ring-ring sr-only rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+      >
+        {messages.nav.skipToContent}
+      </a>
+      <SiteHeader authEnabled={session.enabled} />
+      <main id="main" className="flex-1">
+        {children}
+      </main>
+      <SiteFooter />
+    </>
+  );
+
   return (
     <html lang="en">
       <body className="flex min-h-dvh flex-col antialiased">
-        <a
-          href="#main"
-          className="bg-accent text-accent-foreground focus:ring-ring sr-only rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
-        >
-          {messages.nav.skipToContent}
-        </a>
-        <SiteHeader />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
+        {/*
+         * ClerkProvider belongs inside <body>, not wrapping <html>.
+         *
+         * It is also mounted only when Clerk is configured: it throws without a
+         * publishable key, which would break a fresh clone that has no Clerk
+         * account. Branching on deployment configuration is safe where branching
+         * on session state would not be — the tree is identical for every
+         * visitor to a given deployment, so hydration has nothing to disagree
+         * about.
+         */}
+        {session.enabled ? (
+          <ClerkProvider appearance={{ theme: shadcn }}>{body}</ClerkProvider>
+        ) : (
+          body
+        )}
       </body>
     </html>
   );
