@@ -75,5 +75,56 @@ jobs:
         env:
           DATABASE_URL: ""
 
+      # Clerk's setup guide makes "never expose CLERK_SECRET_KEY in client code"
+      # a hard rule, and breaking it is silent: no test fails, no page breaks,
+      # and the first symptom is the key being abused somewhere else. So build
+      # with sentinel credentials and read what actually shipped to the browser.
+      #
+      # Both assertions earn their place. The second one — that the *publishable*
+      # sentinel IS present — is what stops this becoming a check that can only
+      # pass: if a refactor ever emptied or moved .next/static, the first grep
+      # would find nothing, report success, and prove nothing at all.
+      - name: Assert the Clerk secret stays out of client bundles
+        env:
+          # Obviously fake. Never put a real Clerk key here or anywhere in the repo.
+          CLERK_SECRET_KEY: sk_test_ci_sentinel_not_a_real_key
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_sentinel_not_a_real_key
+        run: |
+          set -euo pipefail
+
+          # Start clean so the greps below can only see this build's output.
+          rm -rf .next
+          pnpm build
+
+          # grep exits 1 when it finds nothing, which for the secret is exactly
+          # the result we are hoping for — so swallow its status and count the
+          # file list instead. Counting into a variable is also why this is not
+          # `if grep -rl ... | head`: there the status comes from head, which
+          # always succeeds, and the check passes no matter what grep found.
+          count_matches() {
+            { grep -rlF -- "$1" .next/static/ || true; } | awk 'END { print NR }'
+          }
+
+          secret_hits=$(count_matches "$CLERK_SECRET_KEY")
+          public_hits=$(count_matches "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
+
+          echo "secret sentinel in .next/static:      $secret_hits file(s) (want 0)"
+          echo "publishable sentinel in .next/static: $public_hits file(s) (want 1 or more)"
+
+          status=0
+
+          if [ "$secret_hits" -ne 0 ]; then
+            echo "::error::CLERK_SECRET_KEY reached a client bundle. Affected files:"
+            grep -rlF -- "$CLERK_SECRET_KEY" .next/static/ || true
+            status=1
+          fi
+
+          if [ "$public_hits" -eq 0 ]; then
+            echo "::error::NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is absent from .next/static, so this step inspected nothing meaningful and its secret check proves nothing. Repair the check rather than deleting it."
+            status=1
+          fi
+
+          exit "$status"
+
       - name: Check formatting
         run: pnpm format:check
