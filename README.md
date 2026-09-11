@@ -170,10 +170,15 @@ Rejected submissions are hidden rather than deleted, so a decision leaves a reco
 Moderators sign in with a real account (Clerk), so every decision records **who** made it.
 
 ```bash
-npx clerk@latest init --app app_3JA5p852G6H58QcYHZTxediufKS   # writes the keys into .env
+npx clerk@latest init   # creates a Clerk app under your account and writes the keys into .env
 ```
 
 Then set `MODERATOR_EMAILS` to your own email to appoint the first moderator.
+
+> Running your own fork or a second environment? Leave `--app` off. Passing an application id
+> that belongs to a different Clerk account fails with `Failed to fetch application (404)`, which
+> reads like a broken command rather than a permissions problem. To link an app you *do* own, find
+> its id with `clerk apps list`.
 
 **With Clerk unconfigured the app still runs** — browsing and contributing both work signed out —
 and moderation is unavailable rather than open. It fails closed, so a missing variable can never
