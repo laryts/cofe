@@ -296,3 +296,23 @@
     border-top-color: var(--border) !important;
   }
 }
+
+@layer components {
+  /*
+   * MapLibre's zoom glyphs in dark mode.
+   *
+   * The +/- icons are background-image SVGs with fill="#333" hardcoded into the
+   * data URI, so `color` cannot reach them. Against our dark control surface
+   * that is dark grey on near-black — the buttons effectively disappear.
+   * Inverting the glyph turns #333 into a light grey that reads properly.
+   */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .maplibregl-ctrl-icon {
+      filter: invert(1);
+    }
+  }
+
+  [data-theme="dark"] .maplibregl-ctrl-icon {
+    filter: invert(1);
+  }
+}
