@@ -17,6 +17,7 @@ export const messages = {
     github: "GitHub",
     skipToContent: "Skip to content",
     signIn: "Sign in",
+    signUp: "Sign up",
   },
   home: {
     heroTitle: "Find a café where you can actually work.",

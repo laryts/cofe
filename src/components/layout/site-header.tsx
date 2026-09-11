@@ -12,10 +12,9 @@ const links = [
 
 interface SiteHeaderProps {
   authEnabled: boolean;
-  signedIn: boolean;
 }
 
-export function SiteHeader({ authEnabled, signedIn }: SiteHeaderProps) {
+export function SiteHeader({ authEnabled }: SiteHeaderProps) {
   return (
     <header className="border-border bg-background/85 sticky top-0 z-40 border-b backdrop-blur-sm">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -43,7 +42,7 @@ export function SiteHeader({ authEnabled, signedIn }: SiteHeaderProps) {
             </ul>
           </nav>
 
-          <AuthControls enabled={authEnabled} signedIn={signedIn} />
+          <AuthControls enabled={authEnabled} />
         </div>
       </div>
     </header>

@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import type { Metadata, Viewport } from "next";
 
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -52,34 +53,45 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  /*
-   * ClerkProvider is mounted only when Clerk is configured — it throws without
-   * a publishable key, which would break a fresh clone that has no Clerk
-   * account. Branching on deployment configuration is safe: unlike branching on
-   * session state, the tree is identical for every visitor to a given
-   * deployment, so there is nothing for hydration to disagree about.
-   */
   // Resolved here, in app/, and passed down — components/ must not reach into
   // the server layer (see docs/ARCHITECTURE.md).
   const session = await getSessionState();
 
-  const content = (
+  const body = (
+    <>
+      <a
+        href="#main"
+        className="bg-accent text-accent-foreground focus:ring-ring sr-only rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+      >
+        {messages.nav.skipToContent}
+      </a>
+      <SiteHeader authEnabled={session.enabled} />
+      <main id="main" className="flex-1">
+        {children}
+      </main>
+      <SiteFooter />
+    </>
+  );
+
+  return (
     <html lang="en">
       <body className="flex min-h-dvh flex-col antialiased">
-        <a
-          href="#main"
-          className="bg-accent text-accent-foreground focus:ring-ring sr-only rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
-        >
-          {messages.nav.skipToContent}
-        </a>
-        <SiteHeader authEnabled={session.enabled} signedIn={session.signedIn} />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
+        {/*
+         * ClerkProvider belongs inside <body>, not wrapping <html>.
+         *
+         * It is also mounted only when Clerk is configured: it throws without a
+         * publishable key, which would break a fresh clone that has no Clerk
+         * account. Branching on deployment configuration is safe where branching
+         * on session state would not be — the tree is identical for every
+         * visitor to a given deployment, so hydration has nothing to disagree
+         * about.
+         */}
+        {session.enabled ? (
+          <ClerkProvider appearance={{ theme: shadcn }}>{body}</ClerkProvider>
+        ) : (
+          body
+        )}
       </body>
     </html>
   );
-
-  return session.enabled ? <ClerkProvider>{content}</ClerkProvider> : content;
 }

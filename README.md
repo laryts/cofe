@@ -167,8 +167,13 @@ invisible to visitors and counting toward no score — and a moderator approves 
 
 Rejected submissions are hidden rather than deleted, so a decision leaves a record.
 
-Moderators sign in with a real account (Clerk), so every decision records **who** made it. Set
-`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `MODERATOR_EMAILS` to enable the queue.
+Moderators sign in with a real account (Clerk), so every decision records **who** made it.
+
+```bash
+npx clerk@latest init --app app_3JA5p852G6H58QcYHZTxediufKS   # writes the keys into .env
+```
+
+Then set `MODERATOR_EMAILS` to your own email to appoint the first moderator.
 
 **With Clerk unconfigured the app still runs** — browsing and contributing both work signed out —
 and moderation is unavailable rather than open. It fails closed, so a missing variable can never

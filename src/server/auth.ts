@@ -41,19 +41,15 @@ export function isAuthConfigured(): boolean {
 }
 
 /**
- * Just enough for the layout to render the header, without loading a profile
- * or touching the database on every page view.
+ * Whether this deployment has accounts at all.
+ *
+ * Deliberately does not report *who* is signed in: the header uses Clerk's
+ * `<Show>` for that, so signing in through a modal updates it immediately
+ * rather than waiting for the next server render. This is the one bit the
+ * layout needs, and it costs no session lookup on an anonymous page view.
  */
-export async function getSessionState(): Promise<{ enabled: boolean; signedIn: boolean }> {
-  if (!clerkConfigured()) return { enabled: false, signedIn: false };
-
-  try {
-    const session = await auth();
-    return { enabled: true, signedIn: Boolean(session.userId) };
-  } catch {
-    // A misconfigured Clerk costs the header its buttons, not the page.
-    return { enabled: false, signedIn: false };
-  }
+export async function getSessionState(): Promise<{ enabled: boolean }> {
+  return { enabled: clerkConfigured() };
 }
 
 /**
