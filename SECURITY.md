@@ -69,6 +69,13 @@ We will credit you in the advisory unless you prefer otherwise.
 - **`DATABASE_URL` is server-only.** It is imported behind the `server-only` package, so leaking it
   into a client bundle is a build error rather than a silent disaster — please do not work around
   that.
+- **`CLERK_SECRET_KEY` never reaches the browser, and CI proves it on every run.** The
+  `Assert the Clerk secret stays out of client bundles` step in `.github/workflows/ci.yml` builds
+  with a sentinel secret and a sentinel publishable key, then fails if the secret appears anywhere
+  under `.next/static/`. It also fails if the *publishable* sentinel is missing, because a build
+  that produced nothing to inspect would otherwise let the secret check pass while proving nothing.
+  A leaked secret key breaks nothing visibly, so this guard is the only thing standing between a bad
+  refactor and a key you would have to rotate.
 - **The public geocoding proxy is rate limited per process, not globally.** Behind more than one
   instance you need a shared limiter or a self-hosted geocoder.
 
