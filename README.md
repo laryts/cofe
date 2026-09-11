@@ -97,8 +97,7 @@ pnpm install
 cp .env.example .env          # defaults match docker-compose
 docker compose up -d db       # plain postgres:16-alpine, no extensions
 
-pnpm db:migrate               # create the schema
-pnpm db:seed                  # load the demo dataset
+pnpm db:reset                 # create the schema, then load the demo dataset
 pnpm dev                      # http://localhost:3000
 ```
 
@@ -135,6 +134,7 @@ pnpm test           # unit tests
 pnpm db:generate    # generate a migration after changing the schema
 pnpm db:migrate     # apply migrations
 pnpm db:seed        # reload demo data (only touches source = 'seed' rows)
+pnpm db:reset       # migrate then seed, in the right order
 pnpm db:studio      # Drizzle Studio
 ```
 

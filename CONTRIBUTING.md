@@ -53,8 +53,7 @@ cd cofe
 pnpm install
 cp .env.example .env
 docker compose up -d db
-pnpm db:migrate
-pnpm db:seed
+pnpm db:reset      # migrate, then seed
 pnpm dev
 ```
 

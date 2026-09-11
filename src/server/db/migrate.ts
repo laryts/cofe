@@ -10,6 +10,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
+import { reportScriptFailure } from "./errors";
+
 config({ path: ".env", quiet: true });
 
 async function main() {
@@ -31,6 +33,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  console.error("✗ Migration failed:", error);
-  process.exitCode = 1;
+  reportScriptFailure("Migration failed", error);
 });
